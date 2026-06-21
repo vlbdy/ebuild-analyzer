@@ -1,15 +1,16 @@
 import sys
 
-from output.ansi import Format, Color
-from parser.ebuild_ast import EbuildAST
 from output import optfeatures_printer
+from output.ansi import Format, Color
 from parser import optfeature_parser
+from parser.ebuild_ast import EbuildAST
 from utils import package_utils, ebuild_utils
 
 """
 After parsing the bash script with tree sitter, iterate over all the optfeature commands and then go up the tree
 recording every conditional statement (if, &&, ||, use, has_version) until the root is reached
 """
+
 
 def usage():
     print(f"""\
@@ -18,6 +19,7 @@ Usage: {sys.argv[0]} <COMMAND> <PACKAGE>
 Available commands:
     {Format.BOLD("optfeatures")} - Prints the available optional features of the package\
 """)
+
 
 def main():
     if len(sys.argv) < 3:
@@ -43,6 +45,7 @@ def main():
     else:
         print(Color.RED(f"Unknown command '{command}'"))
         usage()
+
 
 if __name__ == "__main__":
     main()

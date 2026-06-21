@@ -43,7 +43,6 @@ def __print_package_combination(package_combo: List[PackageWithUses], base_inden
         if package.enabled_use_flags or package.disabled_use_flags:
             print(']', end='')
 
-
         if i != len(package_combo) - 1:
             print(Format.BOLD(" and "), end='')
             indentation = 0
@@ -55,6 +54,7 @@ def __print_use_flags_to_enable_list(target_package: str, use_flags: List[str]) 
 
         if i != len(use_flags) - 1:
             print(', ', end='')
+
 
 def __print_use_flags_to_disable_list(target_package: str, use_flags: List[str]) -> None:
     for i, use_flag in enumerate(use_flags):
