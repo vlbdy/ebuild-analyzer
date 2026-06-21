@@ -78,6 +78,10 @@ def __print_optfeature_dependencies(target_package: str, optfeature_dependencies
 
 
 def print_optfeatures(target_package: str, optfeatures: List[OptFeature]) -> None:
+    if not optfeatures:
+        print(f"Package '{target_package}' has no optional features")
+        return
+
     optfeatures_groups = defaultdict(list)
     for optfeature in optfeatures:
         optfeatures_groups[optfeature.header].append(optfeature)
