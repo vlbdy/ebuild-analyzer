@@ -47,9 +47,10 @@ def __print_packages_list(packages: List[str]) -> None:
 
 
 def __print_package_required_to_enable_optfeature(package_combinations: List[List[str]], base_indentation: int) -> None:
-    print(Format.BOLD(f"{' ' * base_indentation}Required packages to enable the feature:"))
+    indentation = base_indentation + 4
+    print(f"{' ' * indentation}Required packages to enable the feature:")
     for i, package_combo in enumerate(package_combinations):
-        __print_package_combination(package_combo, base_indentation)
+        __print_package_combination(package_combo, indentation)
 
         if i != len(package_combinations) - 1:
             print(Format.BOLD(" or"))
@@ -59,20 +60,21 @@ def __print_package_required_to_enable_optfeature(package_combinations: List[Lis
 
 def __print_optfeature_dependencies(target_package: str, optfeature_dependencies: OptFeatureDependencies,
                                     base_indentation: int) -> None:
+    indentation = base_indentation + 4
     if optfeature_dependencies.package_dependencies:
-        print(f"{' ' * base_indentation}{Format.BOLD('Depends on packages: [')}", end='')
+        print(f"{' ' * indentation}Depends on packages: [", end='')
         __print_packages_list(optfeature_dependencies.package_dependencies)
-        print(Format.BOLD(']'))
+        print(']')
 
     if optfeature_dependencies.enabled_use_flags:
-        print(f"{' ' * base_indentation}{Format.BOLD('USE flags to enable: [')}", end='')
+        print(f"{' ' * indentation}USE flags to enable: [", end='')
         __print_use_flags_list(target_package, optfeature_dependencies.enabled_use_flags)
-        print(Format.BOLD(']'))
+        print(']')
 
     if optfeature_dependencies.disabled_use_flags:
-        print(f"{' ' * base_indentation}{Format.BOLD('USE flags to disable: [')}", end='')
+        print(f"{' ' * indentation}USE flags to disable: [", end='')
         __print_use_flags_list(target_package, optfeature_dependencies.disabled_use_flags)
-        print(Format.BOLD(']'))
+        print(']')
 
 
 """
@@ -110,6 +112,5 @@ def print_optfeatures(target_package: str, optfeatures: List[OptFeature]) -> Non
         for optfeature in optfeatures:
             print(f"{' ' * indentation}{Format.BOLD(optfeature.description)}")
             if optfeature.dependencies:
-                indentation += 4
                 __print_optfeature_dependencies(target_package, optfeature.dependencies, indentation)
             __print_package_required_to_enable_optfeature(optfeature.feature_enabling_package_combinations, indentation)
