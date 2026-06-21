@@ -15,9 +15,9 @@ def __print_colored_package_name(package: str, indentation: int) -> None:
 
 def __print_colored_use_flag(target_package: str, use_flag: str) -> None:
     if is_use_flag_enabled(target_package, use_flag):
-        print(Format.BOLD(Color.RED(use_flag)), end='')
+        print(Color.RED(Format.BOLD(use_flag)), end='')
     else:
-        print({Format.BOLD(Color.BLUE(f"-{use_flag}"))}, end='')
+        print({Color.BLUE(Format.BOLD(f"-{use_flag}"))}, end='')
 
 
 def __print_package_combination(package_combo: List[str], base_indentation: int) -> None:
@@ -86,7 +86,7 @@ def print_optfeatures(target_package: str, optfeatures: List[OptFeature]) -> Non
         print()
         indentation = 0
         if header is not None:
-            print(Format.BOLD(Color.BLUE(header)))
+            print(Color.BLUE(Format.BOLD(header)))
             indentation += 4
 
         for optfeature in optfeatures:
