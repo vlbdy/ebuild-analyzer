@@ -77,6 +77,39 @@ def __print_optfeature_dependencies(target_package: str, optfeature_dependencies
         print(']')
 
 
+def __is_feature_available(target_package: str, optfeature: OptFeature) -> bool:
+    if optfeature.dependencies:
+        for dependency in optfeature.dependencies.package_dependencies:
+            if not is_package_installed(dependency):
+                return False
+        for use_flag_to_enable in optfeature.dependencies.enabled_use_flags:
+            if not is_use_flag_enabled(target_package, use_flag_to_enable):
+                return False
+        for use_flag_to_disable in optfeature.dependencies.disabled_use_flags:
+            if is_use_flag_enabled(target_package, use_flag_to_disable):
+                return False
+
+    for package_combination in optfeature.feature_enabling_package_combinations:
+        package_combination_installed = True
+        for package in package_combination:
+            if not is_package_installed(package):
+                package_combination_installed = False
+                break
+
+        if package_combination_installed:
+            return True
+    return False
+
+def __print_feature_availability(target_package: str, optfeature: OptFeature) -> None:
+    is_feature_available = __is_feature_available(target_package, optfeature)
+
+    print(Color.BLUE('['), end='')
+    if is_feature_available:
+        print(Color.GREEN(Format.BOLD("Available")), end='')
+    else:
+        print(Color.RED(Format.BOLD("Not Available")), end='')
+    print(Color.BLUE(']'))
+
 def print_optfeatures(target_package: str, optfeatures: List[OptFeature]) -> None:
     if not optfeatures:
         print(f"Package '{target_package}' has no optional features")
@@ -94,7 +127,9 @@ def print_optfeatures(target_package: str, optfeatures: List[OptFeature]) -> Non
             indentation += 4
 
         for optfeature in optfeatures:
-            print(f"{' ' * indentation}{Format.BOLD(optfeature.description)}")
+            print(f"{' ' * indentation}{Format.BOLD(optfeature.description)} ", end='')
+            __print_feature_availability(target_package, optfeature)
+
             if optfeature.dependencies:
                 __print_optfeature_dependencies(target_package, optfeature.dependencies, indentation)
             __print_package_required_to_enable_optfeature(optfeature.feature_enabling_package_combinations, indentation)
