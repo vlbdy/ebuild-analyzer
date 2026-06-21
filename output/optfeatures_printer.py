@@ -94,3 +94,4 @@ def print_optfeatures(target_package: str, optfeatures: List[OptFeature]) -> Non
             if optfeature.dependencies:
                 __print_optfeature_dependencies(target_package, optfeature.dependencies, indentation)
             __print_package_required_to_enable_optfeature(optfeature.feature_enabling_package_combinations, indentation)
+            print()
