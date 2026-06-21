@@ -1,11 +1,20 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+
+@dataclass(frozen=True)
+class PackageWithUses:
+    package_name: str
+    enabled_use_flags: Optional[List[str]]
+    disabled_use_flags: Optional[List[str]]
+
+
 @dataclass(frozen=True)
 class OptFeatureDependencies:
     enabled_use_flags: List[str]
     disabled_use_flags: List[str]
     package_dependencies: List[str]
+
 
 @dataclass(frozen=True)
 class OptFeature:
@@ -14,4 +23,4 @@ class OptFeature:
     header: Optional[str]
 
     description: str
-    feature_enabling_package_combinations: List[List[str]]
+    feature_enabling_package_combinations: List[List[PackageWithUses]]

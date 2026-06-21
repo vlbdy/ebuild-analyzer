@@ -21,6 +21,9 @@ def is_package_installed(package: str) -> bool:
 
 
 def is_use_flag_enabled(package: str, use_flag: str) -> bool:
+    if not is_package_installed(package):
+        return False
+
     cpv = __get_cpv_for_package(package)
     use_flags = set(portage_db.aux_get(cpv, ["USE"])[0].split())
     return use_flag in use_flags

@@ -3,15 +3,40 @@ from typing import List, Tuple
 
 from tree_sitter import Node
 
-from parser.optfeature import OptFeature, OptFeatureDependencies
+from parser.optfeature import OptFeature, OptFeatureDependencies, PackageWithUses
 
 
-def __parse_optfeature_command(optfeature_command_text: str) -> Tuple[str, List[List[str]]]:
+def __parse_package_with_uses(package_string: str) -> PackageWithUses:
+    if '[' not in package_string:
+        return PackageWithUses(package_string, None, None)
+
+    start = package_string.index("[")
+    end = package_string.index("]", start)
+
+    package_name = package_string[:start]
+    use_flags = package_string[start + 1:end].split(",")
+
+    enabled_use_flags = []
+    disabled_use_flags = []
+    for use_flag in use_flags:
+        if use_flag.startswith('-'):
+            disabled_use_flags.append(use_flag[1:])
+        else:
+            enabled_use_flags.append(use_flag)
+
+    return PackageWithUses(package_name, enabled_use_flags, disabled_use_flags)
+
+
+def __parse_optfeature_command(optfeature_command_text: str) -> Tuple[str, List[List[PackageWithUses]]]:
     _, description, *package_combinations = shlex.split(optfeature_command_text)
 
-    package_combination_lists = []
+    package_combination_lists: List[List[PackageWithUses]] = []
     for package_combination in package_combinations:
-        package_combination_lists.append(package_combination.split(' '))
+        packages_with_uses: List[PackageWithUses] = []
+        for package in package_combination.split(' '):
+            packages_with_uses.append(__parse_package_with_uses(package))
+
+        package_combination_lists.append(packages_with_uses)
 
     return description, package_combination_lists
 
