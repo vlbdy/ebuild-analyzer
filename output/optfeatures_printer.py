@@ -77,26 +77,6 @@ def __print_optfeature_dependencies(target_package: str, optfeature_dependencies
         print(']')
 
 
-"""
-Header
-    Description [Available]/[Not Available]
-        Depends on packages:
-        USE flags to enable:
-        USE flags to disable:
-        Required packages to enable the feature:
-            ...
-
-<<< OR with no header >>>
-      
-Description [Available]/[Not Available]
-    Depends on packages:
-    USE flags to enable:
-    USE flags to disable:
-    Required packages to enable the feature:
-        ...
-"""
-
-
 def print_optfeatures(target_package: str, optfeatures: List[OptFeature]) -> None:
     optfeatures_groups = defaultdict(list)
     for optfeature in optfeatures:
