@@ -43,8 +43,21 @@ def __remove_invalid_characters_from_package_string(package_string: str) -> str:
     return package_string
 
 
-def __parse_optfeature_command(optfeature_command_text: str) -> Tuple[str, List[List[PackageWithUses]]]:
-    _, description, *package_combinations = shlex.split(optfeature_command_text)
+def __get_arguments_from_command_node(command_node: Node) -> List[str]:
+    arguments = []
+    for child in command_node.children:
+        if child.type == "command_name":
+            continue
+        if child.type == "string":
+            # Remove the " at the start and the end
+            arguments.append(child.text.decode()[1:-1])
+        else:
+            arguments.append(child.text.decode())
+    return arguments
+
+
+def __parse_optfeature_command(optfeature_command_node: Node) -> Tuple[str, List[List[PackageWithUses]]]:
+    description, *package_combinations = __get_arguments_from_command_node(optfeature_command_node)
 
     package_combination_lists: List[List[PackageWithUses]] = []
     for package_combination in package_combinations:
@@ -79,7 +92,7 @@ def __parse_optfeature_list_parent(list_parent: Node) -> OptFeatureDependencies:
 
 
 def parse_single_optfeature_node(optfeature_ast_node: Node, header: str) -> OptFeature:
-    description, package_combinations = __parse_optfeature_command(optfeature_ast_node.text.decode())
+    description, package_combinations = __parse_optfeature_command(optfeature_ast_node)
     optfeature_dependencies = None
 
     current_node = optfeature_ast_node.parent
@@ -97,9 +110,7 @@ def parse_multiple_optfeature_nodes(optfeature_ast_nodes: List[Node]) -> List[Op
 
     for node in optfeature_ast_nodes:
         if node.text.startswith(b"optfeature_header"):
-            command_elements = shlex.split(node.text.decode())
-            if len(command_elements) > 1:
-                current_header = command_elements[1]
+            current_header = __get_arguments_from_command_node(node)[0]
         else:
             optfeatures.append(parse_single_optfeature_node(node, current_header))
 
