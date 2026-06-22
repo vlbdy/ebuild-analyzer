@@ -1,3 +1,5 @@
+from typing import List
+
 import portage
 
 portage_db = portage.db[portage.root]["vartree"].dbapi
@@ -10,6 +12,10 @@ def __get_cpv_for_package(package: str) -> str:
     elif not candidate_cpvs:
         raise RuntimeError(f"Package '{package}' not found")
     return candidate_cpvs[0]
+
+
+def get_all_installed_packages() -> List[str]:
+    return portage_db.cpv_all()
 
 
 def get_ebuild_path_for_installed_package(package: str) -> str:
