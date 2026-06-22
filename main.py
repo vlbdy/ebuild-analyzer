@@ -1,4 +1,4 @@
-import sys
+import argparse
 
 from output import optfeatures_printer
 from output.ansi import Format, Color
@@ -6,28 +6,36 @@ from parser import optfeature_parser
 from parser.ebuild_ast import EbuildAST
 from utils import package_utils, ebuild_utils
 
-"""
-After parsing the bash script with tree sitter, iterate over all the optfeature commands and then go up the tree
-recording every conditional statement (if, &&, ||, use, has_version) until the root is reached
-"""
+parser = argparse.ArgumentParser(prog="ebuild-analyzer")
 
+parser.add_argument(
+    "--all",
+    action="store_true",
+    help="Query all installed packages",
+)
 
-def usage():
-    print(f"""\
-Usage: {sys.argv[0]} <COMMAND> <PACKAGE>
+subparsers = parser.add_subparsers(
+    dest="command",
+    required=True,
+)
 
-Available commands:
-    {Format.BOLD("optfeatures")} - Prints the available optional features of the package\
-""")
+optfeatures_parser = subparsers.add_parser(
+    "optfeatures",
+    help="Extract optfeatures",
+)
+optfeatures_parser.add_argument("package")
+
+kernel_parser = subparsers.add_parser(
+    "kernel-config",
+    help="Extract kernel config requirements",
+)
+kernel_parser.add_argument("package")
 
 
 def main():
-    if len(sys.argv) < 3:
-        usage()
-        sys.exit(1)
-
-    command = sys.argv[1]
-    package = sys.argv[2]
+    args = parser.parse_args()
+    command = args.command
+    package = args.package
 
     if command == "optfeatures":
         ebuild_path = package_utils.get_ebuild_path_for_installed_package(package)
@@ -42,9 +50,6 @@ def main():
         optfeatures = optfeature_parser.parse_multiple_optfeature_nodes(optfeature_ast_nodes)
 
         optfeatures_printer.print_optfeatures(package, optfeatures)
-    else:
-        print(Color.RED(f"Unknown command '{command}'"))
-        usage()
 
 
 if __name__ == "__main__":
