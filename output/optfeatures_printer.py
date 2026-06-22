@@ -144,9 +144,7 @@ def __print_feature_availability(target_package: str, optfeature: OptFeature) ->
 
 
 def print_optfeatures(target_package: str, optfeatures: List[OptFeature]) -> None:
-    if not optfeatures:
-        print(f"Package '{target_package}' has no optional features")
-        return
+    print(Color.LIGHT_PURPLE(Format.BOLD(f"Optional features for package {target_package}:")), end='')
 
     optfeatures_groups = defaultdict(list)
     for optfeature in optfeatures:

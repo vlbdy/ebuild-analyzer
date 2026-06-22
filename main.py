@@ -11,10 +11,16 @@ from utils.package_utils import get_all_installed_packages
 parser = argparse.ArgumentParser(prog="ebuild-analyzer")
 
 parser.add_argument(
-    "--all",
+    "--all", "-a",
     action="store_true",
     help="Query all installed packages",
-    default=False
+    default=False,
+)
+parser.add_argument(
+    "--verbose", "-v",
+    action="store_true",
+    help="Verbose messages",
+    default=False,
 )
 
 subparsers = parser.add_subparsers(
@@ -34,20 +40,27 @@ kernel_parser = subparsers.add_parser(
 )
 kernel_parser.add_argument("package", nargs="?")
 
+args = parser.parse_args()
+
 
 def print_optfeatures_for_package(package: str) -> None:
     ebuild_path = package_utils.get_ebuild_path_for_installed_package(package)
-    print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
+    if args.verbose:
+        print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
 
     ebuild_contents = ebuild_utils.get_normalized_ebuild_contents(ebuild_path)
     tree = ebuild_utils.parse_to_ast(ebuild_contents)
     optfeature_ast_nodes = EbuildAST(tree).get_all_optfeature_nodes()
     optfeatures = optfeature_parser.parse_multiple_optfeature_nodes(optfeature_ast_nodes)
+
+    if not optfeatures:
+        if args.verbose:
+            print(f"Package '{package}' has no optional features")
+        return
     optfeatures_printer.print_optfeatures(package, optfeatures)
 
 
 def main():
-    args = parser.parse_args()
     command = args.command
     package = args.package
 
