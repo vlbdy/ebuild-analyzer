@@ -48,8 +48,8 @@ def __get_arguments_from_command_node(command_node: Node) -> List[str]:
     for child in command_node.children:
         if child.type == "command_name":
             continue
-        if child.type == "string":
-            # Remove the " at the start and the end
+        if child.type == "string" or child.type == "raw_string":
+            # Remove the " or ' at the start and the end
             arguments.append(child.text.decode()[1:-1])
         else:
             arguments.append(child.text.decode())
