@@ -110,7 +110,8 @@ def parse_multiple_optfeature_nodes(optfeature_ast_nodes: List[Node]) -> List[Op
 
     for node in optfeature_ast_nodes:
         if node.text.startswith(b"optfeature_header"):
-            current_header = __get_arguments_from_command_node(node)[0]
+            header_arguments = __get_arguments_from_command_node(node)
+            current_header = header_arguments[0] if header_arguments else None
         else:
             optfeatures.append(parse_single_optfeature_node(node, current_header))
 
