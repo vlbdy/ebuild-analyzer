@@ -7,6 +7,7 @@ from parser.optfeature import OptFeature, OptFeatureDependencies, PackageWithUse
 
 
 def __parse_package_with_uses(package_string: str) -> PackageWithUses:
+    # Package atoms can have USE flag requirements listed next to them within square brackets
     if '[' not in package_string:
         return PackageWithUses(package_string, None, None)
 
@@ -27,6 +28,21 @@ def __parse_package_with_uses(package_string: str) -> PackageWithUses:
     return PackageWithUses(package_name, enabled_use_flags, disabled_use_flags)
 
 
+def __remove_variables_from_package_string(package_string: str) -> str:
+    # This parser does not support variable expansion, so they are removed
+    if '$' not in package_string:
+        return package_string
+    return package_string[:package_string.index('$')]
+
+
+def __remove_invalid_characters_from_package_string(package_string: str) -> str:
+    # Usually after removing a variable from the end of a package string, the last character will be ':'
+    # so it should be removed
+    if package_string.endswith(':'):
+        return package_string[:-1]
+    return package_string
+
+
 def __parse_optfeature_command(optfeature_command_text: str) -> Tuple[str, List[List[PackageWithUses]]]:
     _, description, *package_combinations = shlex.split(optfeature_command_text)
 
@@ -34,6 +50,8 @@ def __parse_optfeature_command(optfeature_command_text: str) -> Tuple[str, List[
     for package_combination in package_combinations:
         packages_with_uses: List[PackageWithUses] = []
         for package in package_combination.split(' '):
+            package = __remove_variables_from_package_string(package)
+            package = __remove_invalid_characters_from_package_string(package)
             packages_with_uses.append(__parse_package_with_uses(package))
 
         package_combination_lists.append(packages_with_uses)
