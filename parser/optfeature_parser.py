@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 from tree_sitter import Node
 
-from parser.optfeature import OptFeature, PackageWithUses
+from parser.optfeature import OptFeature, PackageWithUses, OptFeatureDependencies
 from parser.optfeature_dependencies_parser import OptFeatureDependenciesParser
 
 
@@ -26,12 +26,12 @@ class OptFeatureParser:
 
     def parse_single_optfeature_node(self, optfeature_ast_node: Node, header: str) -> OptFeature:
         description, package_combinations = self.__parse_optfeature_command(optfeature_ast_node)
-        optfeature_dependencies = None
+        optfeature_dependencies = OptFeatureDependencies()
 
         current_node = optfeature_ast_node.parent
         while current_node.type != "program":
             if current_node.type == "list":
-                optfeature_dependencies = self.__dependencies_parser.parse_optfeature_list_parent(current_node)
+                optfeature_dependencies += self.__dependencies_parser.parse_optfeature_list_parent(current_node)
             current_node = current_node.parent
 
         return OptFeature(optfeature_dependencies, header, description, package_combinations)
