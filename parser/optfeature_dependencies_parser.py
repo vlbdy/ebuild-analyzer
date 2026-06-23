@@ -7,7 +7,18 @@ from parser.optfeature import OptFeatureDependencies
 
 
 class OptFeatureDependenciesParser:
-    def parse_optfeature_list_parent(self, list_parent: Node) -> OptFeatureDependencies:
+    def parse_dependencies_recursively(self, optfeature_node: Node) -> OptFeatureDependencies:
+        optfeature_dependencies = OptFeatureDependencies()
+
+        current_node = optfeature_node.parent
+        while current_node.type != "program":
+            if current_node.type == "list":
+                optfeature_dependencies += self.__parse_optfeature_list_parent(current_node)
+            current_node = current_node.parent
+
+        return optfeature_dependencies
+
+    def __parse_optfeature_list_parent(self, list_parent: Node) -> OptFeatureDependencies:
         enabled_use_flag_dependencies: List[str] = []
         disabled_use_flag_dependencies: List[str] = []
         package_dependencies: List[str] = []
