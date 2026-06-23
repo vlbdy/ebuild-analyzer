@@ -5,6 +5,7 @@ from tree_sitter import Node
 
 from parser.optfeature import OptFeature, PackageWithUses
 from parser.optfeature_dependencies_parser import OptFeatureDependenciesParser
+from utils import ast_node_utils
 
 
 class OptFeatureParser:
@@ -17,7 +18,7 @@ class OptFeatureParser:
 
         for node in optfeature_ast_nodes:
             if node.text.startswith(b"optfeature_header"):
-                header_arguments = self.__get_arguments_from_command_node(node)
+                header_arguments = ast_node_utils.get_arguments_from_command_node(node)
                 current_header = header_arguments[0] if header_arguments else None
             else:
                 optfeatures.append(self.parse_single_optfeature_node(node, current_header))
@@ -30,7 +31,7 @@ class OptFeatureParser:
         return OptFeature(optfeature_dependencies, header, description, package_combinations)
 
     def __parse_optfeature_command(self, optfeature_command_node: Node) -> Tuple[str, List[List[PackageWithUses]]]:
-        description, *package_combinations = self.__get_arguments_from_command_node(optfeature_command_node)
+        description, *package_combinations = ast_node_utils.get_arguments_from_command_node(optfeature_command_node)
 
         package_combination_lists: List[List[PackageWithUses]] = []
         for package_combination in package_combinations:
@@ -43,18 +44,6 @@ class OptFeatureParser:
             package_combination_lists.append(packages_with_uses)
 
         return description, package_combination_lists
-
-    def __get_arguments_from_command_node(self, command_node: Node) -> List[str]:
-        arguments = []
-        for child in command_node.children:
-            if child.type == "command_name":
-                continue
-            if child.type == "string" or child.type == "raw_string":
-                # Remove the " or ' at the start and the end
-                arguments.append(child.text.decode()[1:-1])
-            else:
-                arguments.append(child.text.decode())
-        return arguments
 
     def __remove_invalid_characters_from_package_string(self, package_string: str) -> str:
         # Usually after removing a variable from the end of a package string, the last character will be ':'
