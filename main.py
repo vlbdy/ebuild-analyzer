@@ -3,7 +3,7 @@ import sys
 
 from output.ansi import Format, Color
 from output.optfeatures_printer import OptFeaturesPrinter
-from parser import optfeature_parser
+from parser.optfeature_parser import OptFeatureParser
 from utils.ebuild import Ebuild
 from utils.portage_db import PortageDatabase
 
@@ -49,7 +49,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> 
 
     ebuild_ast = Ebuild(ebuild_path).parse_to_ast()
     optfeature_ast_nodes = ebuild_ast.get_all_optfeature_nodes()
-    optfeatures = optfeature_parser.parse_multiple_optfeature_nodes(optfeature_ast_nodes)
+    optfeatures = OptFeatureParser().parse_multiple_optfeature_nodes(optfeature_ast_nodes)
 
     if not optfeatures:
         if args.verbose:
