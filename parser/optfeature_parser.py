@@ -1,9 +1,26 @@
+import re
 import shlex
 from typing import List, Tuple
 
 from tree_sitter import Node
 
 from parser.optfeature import OptFeature, OptFeatureDependencies, PackageWithUses
+
+
+def __parse_use_flag_categories(use_flags: List[str]) -> Tuple[List[str], List[str]]:
+    enabled_use_flags = []
+    disabled_use_flags = []
+    for use_flag in use_flags:
+        if match := re.match(r"-(.+)", use_flag):
+            disabled_use_flags.append(match.group(1))
+        elif match := re.match(r"(.+)\(-\)", use_flag):
+            disabled_use_flags.append(match.group(1))
+        elif match := re.match(r"(.+)\(\+\)", use_flag):
+            enabled_use_flags.append(match.group(1))
+        else:
+            enabled_use_flags.append(use_flag)
+
+    return enabled_use_flags, disabled_use_flags
 
 
 def __parse_package_with_uses(package_string: str) -> PackageWithUses:
@@ -17,13 +34,7 @@ def __parse_package_with_uses(package_string: str) -> PackageWithUses:
     package_name = package_string[:start]
     use_flags = package_string[start + 1:end].split(",")
 
-    enabled_use_flags = []
-    disabled_use_flags = []
-    for use_flag in use_flags:
-        if use_flag.startswith('-'):
-            disabled_use_flags.append(use_flag[1:])
-        else:
-            enabled_use_flags.append(use_flag)
+    enabled_use_flags, disabled_use_flags = __parse_use_flag_categories(use_flags)
 
     return PackageWithUses(package_name, enabled_use_flags, disabled_use_flags)
 
