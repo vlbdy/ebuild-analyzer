@@ -19,3 +19,6 @@ class EbuildAST:
         walk_and_save_optfeature_nodes(self.__tree.root_node)
 
         return optfeature_nodes
+
+    def get_tree(self) -> Tree:
+        return self.__tree

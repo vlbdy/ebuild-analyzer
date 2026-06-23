@@ -1,8 +1,10 @@
 import argparse
 import sys
 
+from debug import dump_ast
 from output.ansi import Format, Color
 from output.optfeatures_printer import OptFeaturesPrinter
+from parser.ebuild_ast import EbuildAST
 from parser.optfeature_parser import OptFeatureParser
 from utils.ebuild import Ebuild
 from utils.portage_db import PortageDatabase
@@ -39,15 +41,16 @@ kernel_parser = subparsers.add_parser(
 )
 kernel_parser.add_argument("package", nargs="?")
 
+dump_ast_parser = subparsers.add_parser(
+    "dump-ast",
+    help="Dump tree sitter AST for the ebuild (for debugging)"
+)
+dump_ast_parser.add_argument("package")
+
 args = parser.parse_args()
 
 
-def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> None:
-    ebuild_path = portage_db.get_ebuild_path_for_package(package)
-    if args.verbose:
-        print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
-
-    ebuild_ast = Ebuild(ebuild_path).parse_to_ast()
+def print_optfeatures_for_package(portage_db: PortageDatabase, ebuild_ast: EbuildAST, package: str) -> None:
     optfeature_ast_nodes = ebuild_ast.get_all_optfeature_nodes()
     optfeatures = OptFeatureParser().parse_multiple_optfeature_nodes(optfeature_ast_nodes)
 
@@ -67,12 +70,21 @@ def main():
         sys.exit(1)
 
     portage_db = PortageDatabase()
+    ebuild_path = portage_db.get_ebuild_path_for_package(package)
+    if args.verbose:
+        print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
+
+    ebuild = Ebuild(ebuild_path)
+    ebuild_ast = ebuild.parse_to_ast()
+
+    if command == "dump-ast":
+        dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
     if command == "optfeatures":
         if args.all:
             for package in portage_db.get_all_packages():
-                print_optfeatures_for_package(portage_db, package)
+                print_optfeatures_for_package(portage_db, ebuild_ast, package)
         else:
-            print_optfeatures_for_package(portage_db, package)
+            print_optfeatures_for_package(portage_db, ebuild_ast, package)
 
 
 if __name__ == "__main__":
