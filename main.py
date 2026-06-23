@@ -1,12 +1,11 @@
 import argparse
 import sys
 
-from output import optfeatures_printer
 from output.ansi import Format, Color
+from output.optfeatures_printer import OptFeaturesPrinter
 from parser import optfeature_parser
-from parser.ebuild_ast import EbuildAST
-from utils import package_utils, ebuild_utils
-from utils.package_utils import get_all_installed_packages
+from utils.ebuild import Ebuild
+from utils.portage_db import PortageDatabase
 
 parser = argparse.ArgumentParser(prog="ebuild-analyzer")
 
@@ -43,21 +42,20 @@ kernel_parser.add_argument("package", nargs="?")
 args = parser.parse_args()
 
 
-def print_optfeatures_for_package(package: str) -> None:
-    ebuild_path = package_utils.get_ebuild_path_for_installed_package(package)
+def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> None:
+    ebuild_path = portage_db.get_ebuild_path_for_package(package)
     if args.verbose:
         print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
 
-    ebuild_contents = ebuild_utils.get_normalized_ebuild_contents(ebuild_path)
-    tree = ebuild_utils.parse_to_ast(ebuild_contents)
-    optfeature_ast_nodes = EbuildAST(tree).get_all_optfeature_nodes()
+    ebuild_ast = Ebuild(ebuild_path).parse_to_ast()
+    optfeature_ast_nodes = ebuild_ast.get_all_optfeature_nodes()
     optfeatures = optfeature_parser.parse_multiple_optfeature_nodes(optfeature_ast_nodes)
 
     if not optfeatures:
         if args.verbose:
             print(f"Package '{package}' has no optional features")
         return
-    optfeatures_printer.print_optfeatures(package, optfeatures)
+    OptFeaturesPrinter(portage_db).print_optfeatures(package, optfeatures)
 
 
 def main():
@@ -68,12 +66,13 @@ def main():
         print("error: PACKAGE is required unless --all is specified")
         sys.exit(1)
 
+    portage_db = PortageDatabase()
     if command == "optfeatures":
         if args.all:
-            for package in get_all_installed_packages():
-                print_optfeatures_for_package(package)
+            for package in portage_db.get_all_packages():
+                print_optfeatures_for_package(portage_db, package)
         else:
-            print_optfeatures_for_package(package)
+            print_optfeatures_for_package(portage_db, package)
 
 
 if __name__ == "__main__":
