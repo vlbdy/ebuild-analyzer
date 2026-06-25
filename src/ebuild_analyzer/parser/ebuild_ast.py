@@ -7,7 +7,7 @@ class EbuildAST:
     def __init__(self, tree: Tree):
         self.__tree = tree
 
-    def get_all_nodes_of_type(self, node_type: str, prefix: str = Optional[str]) -> List[Node]:
+    def get_all_nodes_of_type(self, node_type: str, prefix: Optional[str] = None) -> List[Node]:
         nodes: List[Node] = []
 
         def walk_and_save_nodes(node: Node) -> None:
