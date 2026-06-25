@@ -5,15 +5,23 @@ from ebuild_analyzer.utils import ast_node_utils
 
 
 class OptFeatureDependenciesParser:
-    def parse_dependencies_recursively(self, optfeature_node: Node) -> OptFeatureDependencies:
+    def parse(self, optfeature_node: Node) -> OptFeatureDependencies:
         optfeature_dependencies = OptFeatureDependencies()
 
         current_node = optfeature_node.parent
         while current_node.type != "program":
-            if current_node.type == "list":
-                optfeature_dependencies += self.__parse_optfeature_list_parent(current_node)
+            optfeature_dependencies += self.__parse_node_according_to_type(current_node)
             current_node = current_node.parent
 
+        return optfeature_dependencies
+
+    def __parse_node_according_to_type(self, node: Node) -> OptFeatureDependencies:
+        optfeature_dependencies = OptFeatureDependencies()
+        if node.type == "list":
+            optfeature_dependencies += self.__parse_optfeature_list_parent(node)
+        elif node.type == "if_statement":
+            for condition_node in ast_node_utils.get_all_if_statement_condition_nodes(node):
+                optfeature_dependencies += self.__parse_node_according_to_type(condition_node)
         return optfeature_dependencies
 
     def __parse_optfeature_list_parent(self, list_parent: Node) -> OptFeatureDependencies:

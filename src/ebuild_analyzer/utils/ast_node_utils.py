@@ -28,3 +28,15 @@ def get_arguments_from_command_node(command_node: Node) -> List[str]:
         else:
             arguments.append(child.text.decode())
     return arguments
+
+
+def get_all_if_statement_condition_nodes(if_statement_node: Node) -> List[Node]:
+    condition_nodes: List[Node] = []
+
+    for child in if_statement_node.children:
+        # End of condition nodes
+        if child.type == "then":
+            break
+        condition_nodes.append(child)
+
+    return condition_nodes

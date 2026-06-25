@@ -27,7 +27,7 @@ class OptFeatureParser:
 
     def parse_single_optfeature_node(self, optfeature_ast_node: Node, header: str) -> OptFeature:
         description, package_combinations = self.__parse_optfeature_command(optfeature_ast_node)
-        optfeature_dependencies = self.__dependencies_parser.parse_dependencies_recursively(optfeature_ast_node)
+        optfeature_dependencies = self.__dependencies_parser.parse(optfeature_ast_node)
         return OptFeature(optfeature_dependencies, header, description, package_combinations)
 
     def __parse_optfeature_command(self, optfeature_command_node: Node) -> Tuple[str, List[List[PackageWithUses]]]:
