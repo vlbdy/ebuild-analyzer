@@ -46,10 +46,10 @@ class OptFeaturesPrinter:
 
     def __is_feature_available(self, target_package: str, optfeature: OptFeature) -> bool:
         if optfeature.dependencies:
-            for dependency in optfeature.dependencies.installed_package_dependencies:
+            for dependency in optfeature.dependencies.installed_packages:
                 if not self.__portage_db.is_package_installed(dependency):
                     return False
-            for dependency in optfeature.dependencies.uninstalled_package_dependencies:
+            for dependency in optfeature.dependencies.uninstalled_packages:
                 if self.__portage_db.is_package_installed(dependency):
                     return False
             for use_flag_to_enable in optfeature.dependencies.enabled_use_flags:
@@ -77,14 +77,14 @@ class OptFeaturesPrinter:
     def __print_optfeature_dependencies(self, target_package: str, optfeature_dependencies: OptFeatureDependencies,
                                         base_indentation: int) -> None:
         indentation = base_indentation + 4
-        if optfeature_dependencies.installed_package_dependencies:
+        if optfeature_dependencies.installed_packages:
             print(f"{' ' * indentation}Depends on the following packages being installed: [", end='')
-            self.__print_packages_list(optfeature_dependencies.installed_package_dependencies)
+            self.__print_packages_list(optfeature_dependencies.installed_packages)
             print(']')
 
-        if optfeature_dependencies.uninstalled_package_dependencies:
+        if optfeature_dependencies.uninstalled_packages:
             print(f"{' ' * indentation}Depends on the following packages being uninstalled: [", end='')
-            self.__print_packages_list(optfeature_dependencies.uninstalled_package_dependencies,
+            self.__print_packages_list(optfeature_dependencies.uninstalled_packages,
                                        installed_color=Color.RED, uninstalled_color=Color.GREEN)
             print(']')
 

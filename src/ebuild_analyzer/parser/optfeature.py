@@ -13,22 +13,22 @@ class PackageWithUses:
 class OptFeatureDependencies:
     enabled_use_flags: List[str] = field(default_factory=list)
     disabled_use_flags: List[str] = field(default_factory=list)
-    installed_package_dependencies: List[str] = field(default_factory=list)
-    uninstalled_package_dependencies: List[str] = field(default_factory=list)
+    installed_packages: List[str] = field(default_factory=list)
+    uninstalled_packages: List[str] = field(default_factory=list)
 
     def __iadd__(self, other: OptFeatureDependencies) -> OptFeatureDependencies:
         self.enabled_use_flags += other.enabled_use_flags
         self.disabled_use_flags += other.disabled_use_flags
-        self.installed_package_dependencies += other.installed_package_dependencies
-        self.uninstalled_package_dependencies += other.uninstalled_package_dependencies
+        self.installed_packages += other.installed_packages
+        self.uninstalled_packages += other.uninstalled_packages
         return self
 
     # Commands can be negated in bash with '!', this is a helper method
     def negated_add(self, other: OptFeatureDependencies) -> OptFeatureDependencies:
         self.enabled_use_flags += other.disabled_use_flags
         self.disabled_use_flags += other.enabled_use_flags
-        self.installed_package_dependencies += other.uninstalled_package_dependencies
-        self.uninstalled_package_dependencies += other.installed_package_dependencies
+        self.installed_packages += other.uninstalled_packages
+        self.uninstalled_packages += other.installed_packages
         return self
 
 

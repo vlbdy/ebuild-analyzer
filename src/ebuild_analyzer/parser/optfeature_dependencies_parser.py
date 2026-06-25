@@ -41,6 +41,6 @@ class OptFeatureDependenciesParser:
             else:
                 dependencies.enabled_use_flags.append(use_flag)
         elif command == "has_version":
-            dependencies.installed_package_dependencies.append(arguments[0])
+            dependencies.installed_packages.append(arguments[0])
 
         return dependencies
