@@ -3,6 +3,13 @@ from typing import List
 from tree_sitter import Node
 
 
+def find_closest_child_command_node(node: Node) -> Node:
+    for child in node.children:
+        if child.type == "command":
+            return child
+    raise RuntimeError("Command node not found")
+
+
 def get_command_name_from_command_node(command_node: Node) -> str:
     for child in command_node.children:
         if child.type == "command_name":

@@ -46,8 +46,11 @@ class OptFeaturesPrinter:
 
     def __is_feature_available(self, target_package: str, optfeature: OptFeature) -> bool:
         if optfeature.dependencies:
-            for dependency in optfeature.dependencies.package_dependencies:
+            for dependency in optfeature.dependencies.installed_package_dependencies:
                 if not self.__portage_db.is_package_installed(dependency):
+                    return False
+            for dependency in optfeature.dependencies.uninstalled_package_dependencies:
+                if self.__portage_db.is_package_installed(dependency):
                     return False
             for use_flag_to_enable in optfeature.dependencies.enabled_use_flags:
                 if not self.__portage_db.is_use_flag_enabled(target_package, use_flag_to_enable):
@@ -74,9 +77,15 @@ class OptFeaturesPrinter:
     def __print_optfeature_dependencies(self, target_package: str, optfeature_dependencies: OptFeatureDependencies,
                                         base_indentation: int) -> None:
         indentation = base_indentation + 4
-        if optfeature_dependencies.package_dependencies:
-            print(f"{' ' * indentation}Depends on packages: [", end='')
-            self.__print_packages_list(optfeature_dependencies.package_dependencies)
+        if optfeature_dependencies.installed_package_dependencies:
+            print(f"{' ' * indentation}Depends on the following packages being installed: [", end='')
+            self.__print_packages_list(optfeature_dependencies.installed_package_dependencies)
+            print(']')
+
+        if optfeature_dependencies.uninstalled_package_dependencies:
+            print(f"{' ' * indentation}Depends on the following packages being uninstalled: [", end='')
+            self.__print_packages_list(optfeature_dependencies.uninstalled_package_dependencies,
+                                       installed_color=Color.RED, uninstalled_color=Color.GREEN)
             print(']')
 
         if optfeature_dependencies.enabled_use_flags:
@@ -101,9 +110,10 @@ class OptFeaturesPrinter:
             else:
                 print()
 
-    def __print_packages_list(self, packages: List[str]) -> None:
+    def __print_packages_list(self, packages: List[str], installed_color: Color = Color.GREEN,
+                              uninstalled_color: Color = Color.RED) -> None:
         for i, dependency in enumerate(packages):
-            self.__print_colored_package_name(dependency, 0)
+            self.__print_colored_package_name(dependency, 0, installed_color, uninstalled_color)
 
             if i != len(packages) - 1:
                 print(', ', end='')
@@ -154,8 +164,9 @@ class OptFeaturesPrinter:
         else:
             print(Color.RED(use_flag), end='')
 
-    def __print_colored_package_name(self, package: str, indentation: int) -> None:
+    def __print_colored_package_name(self, package: str, indentation: int, installed_color: Color = Color.GREEN,
+                                     uninstalled_color: Color = Color.RED) -> None:
         if self.__portage_db.is_package_installed(package):
-            print(f"{' ' * indentation}{Color.GREEN(package)}", end='')
+            print(f"{' ' * indentation}{installed_color(package)}", end='')
         else:
-            print(f"{' ' * indentation}{Color.RED(package)}", end='')
+            print(f"{' ' * indentation}{uninstalled_color(package)}", end='')

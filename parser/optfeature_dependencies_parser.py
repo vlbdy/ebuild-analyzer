@@ -1,5 +1,3 @@
-from typing import List
-
 from tree_sitter import Node
 
 from parser.optfeature import OptFeatureDependencies
@@ -19,22 +17,30 @@ class OptFeatureDependenciesParser:
         return optfeature_dependencies
 
     def __parse_optfeature_list_parent(self, list_parent: Node) -> OptFeatureDependencies:
-        enabled_use_flag_dependencies: List[str] = []
-        disabled_use_flag_dependencies: List[str] = []
-        package_dependencies: List[str] = []
+        dependencies = OptFeatureDependencies()
 
         for child in list_parent.children:
             if child.type == "command":
-                command = ast_node_utils.get_command_name_from_command_node(child)
-                arguments = ast_node_utils.get_arguments_from_command_node(child)
-                if command == "use":
-                    use_flag = arguments[0]
-                    if use_flag.startswith('!'):
-                        disabled_use_flag_dependencies.append(use_flag)
-                    else:
-                        enabled_use_flag_dependencies.append(use_flag)
-                elif command == "has_version":
-                    package_dependencies.append(arguments[0])
+                dependencies += self.__parse_command_dependency_node(child)
+            elif child.type == "negated_command":
+                command_node = ast_node_utils.find_closest_child_command_node(child)
+                negated_dependencies = self.__parse_command_dependency_node(command_node)
+                dependencies.negated_add(negated_dependencies)
 
-        return OptFeatureDependencies(enabled_use_flag_dependencies, disabled_use_flag_dependencies,
-                                      package_dependencies)
+        return dependencies
+
+    def __parse_command_dependency_node(self, command_node: Node) -> OptFeatureDependencies:
+        dependencies = OptFeatureDependencies()
+
+        command = ast_node_utils.get_command_name_from_command_node(command_node)
+        arguments = ast_node_utils.get_arguments_from_command_node(command_node)
+        if command == "use":
+            use_flag = arguments[0]
+            if use_flag.startswith('!'):
+                dependencies.disabled_use_flags.append(use_flag)
+            else:
+                dependencies.enabled_use_flags.append(use_flag)
+        elif command == "has_version":
+            dependencies.installed_package_dependencies.append(arguments[0])
+
+        return dependencies
