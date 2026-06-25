@@ -20,7 +20,7 @@ class OptFeatureDependenciesParser:
         if node.type == "command":
             dependencies += self.__parse_command_node(node)
         elif node.type == "negated_command":
-            command_node = ast_node_utils.find_closest_child_command_node(node)
+            command_node = ast_node_utils.find_closest_child_node_of_type("command", node)
             negated_dependencies = self.__parse_command_node(command_node)
             dependencies.negated_add(negated_dependencies)
         elif node.type == "list":

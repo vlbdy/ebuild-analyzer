@@ -3,18 +3,15 @@ from typing import List
 from tree_sitter import Node
 
 
-def find_closest_child_command_node(node: Node) -> Node:
+def find_closest_child_node_of_type(node_type: str, node: Node) -> Node:
     for child in node.children:
-        if child.type == "command":
+        if child.type == node_type:
             return child
-    raise RuntimeError("Command node not found")
+    raise RuntimeError(f"No child node of type '{node_type}' was found")
 
 
 def get_command_name_from_command_node(command_node: Node) -> str:
-    for child in command_node.children:
-        if child.type == "command_name":
-            return child.text.decode()
-    raise RuntimeError("No command_name child under node")
+    return find_closest_child_node_of_type("command_name", command_node).text.decode()
 
 
 def get_arguments_from_command_node(command_node: Node) -> List[str]:
