@@ -26,16 +26,17 @@ class OptFeaturesPrinter:
 
             for optfeature in optfeatures:
                 print(f"{' ' * indentation}{Format.BOLD(optfeature.description)} ", end='')
-                self.__print_feature_availability(target_package, optfeature)
+                self.__print_feature_availability(optfeature)
 
-                if optfeature.dependencies:
-                    self.__print_optfeature_dependencies(target_package, optfeature.dependencies, indentation)
-                self.__print_package_required_to_enable_optfeature(optfeature.feature_enabling_package_combinations,
+                if optfeature.visibility_dependencies:
+                    self.__print_optfeature_visibility_dependencies(target_package, optfeature.visibility_dependencies,
+                                                                    indentation)
+                self.__print_package_required_to_enable_optfeature(optfeature.possible_feature_dependencies,
                                                                    indentation)
                 print()
 
-    def __print_feature_availability(self, target_package: str, optfeature: OptFeature) -> None:
-        is_feature_available = self.__is_feature_available(target_package, optfeature)
+    def __print_feature_availability(self, optfeature: OptFeature) -> None:
+        is_feature_available = self.__is_feature_available(optfeature)
 
         print(Color.BLUE('['), end='')
         if is_feature_available:
@@ -44,58 +45,45 @@ class OptFeaturesPrinter:
             print(Color.RED(Format.BOLD("Not Available")), end='')
         print(Color.BLUE(']'))
 
-    def __is_feature_available(self, target_package: str, optfeature: OptFeature) -> bool:
-        if optfeature.dependencies:
-            for dependency in optfeature.dependencies.installed_packages:
-                if not self.__portage_db.is_package_installed(dependency):
-                    return False
-            for dependency in optfeature.dependencies.uninstalled_packages:
-                if self.__portage_db.is_package_installed(dependency):
-                    return False
-            for use_flag_to_enable in optfeature.dependencies.enabled_use_flags:
-                if not self.__portage_db.is_use_flag_enabled(target_package, use_flag_to_enable):
-                    return False
-            for use_flag_to_disable in optfeature.dependencies.disabled_use_flags:
-                if self.__portage_db.is_use_flag_enabled(target_package, use_flag_to_disable):
-                    return False
-
-        for package_combination in optfeature.feature_enabling_package_combinations:
-            package_combination_installed = True
-            for package in package_combination:
+    def __is_feature_available(self, optfeature: OptFeature) -> bool:
+        for feature_dependencies in optfeature.possible_feature_dependencies:
+            feature_dependencies_installed = True
+            for package in feature_dependencies:
                 if not self.__portage_db.is_package_installed(package.package_name):
-                    package_combination_installed = False
+                    feature_dependencies_installed = False
                     break
                 if package.enabled_use_flags:
                     for use_flag in package.enabled_use_flags:
                         if not self.__portage_db.is_use_flag_enabled(package.package_name, use_flag):
-                            package_combination_installed = False
+                            feature_dependencies_installed = False
 
-            if package_combination_installed:
+            if feature_dependencies_installed:
                 return True
         return False
 
-    def __print_optfeature_dependencies(self, target_package: str, optfeature_dependencies: OptFeatureDependencies,
-                                        base_indentation: int) -> None:
+    def __print_optfeature_visibility_dependencies(self, target_package: str,
+                                                   visibility_dependencies: OptFeatureDependencies,
+                                                   base_indentation: int) -> None:
         indentation = base_indentation + 4
-        if optfeature_dependencies.installed_packages:
-            print(f"{' ' * indentation}Depends on the following packages being installed: [", end='')
-            self.__print_packages_list(optfeature_dependencies.installed_packages)
+        if visibility_dependencies.installed_packages:
+            print(f"{' ' * indentation}Advertised when the following packages are installed: [", end='')
+            self.__print_packages_list(visibility_dependencies.installed_packages)
             print(']')
 
-        if optfeature_dependencies.uninstalled_packages:
-            print(f"{' ' * indentation}Depends on the following packages being uninstalled: [", end='')
-            self.__print_packages_list(optfeature_dependencies.uninstalled_packages,
+        if visibility_dependencies.uninstalled_packages:
+            print(f"{' ' * indentation}Advertised when the following packages are not installed: [", end='')
+            self.__print_packages_list(visibility_dependencies.uninstalled_packages,
                                        installed_color=Color.RED, uninstalled_color=Color.GREEN)
             print(']')
 
-        if optfeature_dependencies.enabled_use_flags:
-            print(f"{' ' * indentation}USE flags to enable: [", end='')
-            self.__print_use_flags_to_enable_list(target_package, optfeature_dependencies.enabled_use_flags)
+        if visibility_dependencies.enabled_use_flags:
+            print(f"{' ' * indentation}Advertised when the following USE flags are enabled: [", end='')
+            self.__print_use_flags_to_enable_list(target_package, visibility_dependencies.enabled_use_flags)
             print(']')
 
-        if optfeature_dependencies.disabled_use_flags:
-            print(f"{' ' * indentation}USE flags to disable: [", end='')
-            self.__print_use_flags_to_disable_list(target_package, optfeature_dependencies.disabled_use_flags)
+        if visibility_dependencies.disabled_use_flags:
+            print(f"{' ' * indentation}Advertised when the following USE flags are disabled: [", end='')
+            self.__print_use_flags_to_disable_list(target_package, visibility_dependencies.disabled_use_flags)
             print(']')
 
     def __print_package_required_to_enable_optfeature(self, package_combinations: List[List[PackageWithUses]],

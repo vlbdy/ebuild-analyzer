@@ -34,9 +34,9 @@ class OptFeatureDependencies:
 
 @dataclass(frozen=True)
 class OptFeature:
-    dependencies: OptFeatureDependencies
+    visibility_dependencies: OptFeatureDependencies
 
     header: Optional[str]
 
     description: str
-    feature_enabling_package_combinations: List[List[PackageWithUses]]
+    possible_feature_dependencies: List[List[PackageWithUses]]
