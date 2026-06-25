@@ -1,12 +1,12 @@
 import argparse
 import sys
 
-from debug import dump_ast
-from output.ansi import Format, Color
-from output.optfeatures_printer import OptFeaturesPrinter
-from parser.optfeature_parser import OptFeatureParser
-from utils.ebuild import Ebuild
-from utils.portage_db import PortageDatabase
+from ebuild_analyzer.debug import dump_ast
+from ebuild_analyzer.output.ansi import Format, Color
+from ebuild_analyzer.output.optfeatures_printer import OptFeaturesPrinter
+from ebuild_analyzer.parser.optfeature_parser import OptFeatureParser
+from ebuild_analyzer.utils.ebuild import Ebuild
+from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 parser = argparse.ArgumentParser(prog="ebuild-analyzer")
 

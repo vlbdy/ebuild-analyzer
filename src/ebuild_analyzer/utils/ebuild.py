@@ -3,7 +3,7 @@ import re
 import tree_sitter_bash
 from tree_sitter import Parser, Language
 
-from parser.ebuild_ast import EbuildAST
+from ebuild_analyzer.parser.ebuild_ast import EbuildAST
 
 
 class Ebuild:

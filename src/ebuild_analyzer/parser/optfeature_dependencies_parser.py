@@ -1,7 +1,7 @@
 from tree_sitter import Node
 
-from parser.optfeature import OptFeatureDependencies
-from utils import ast_node_utils
+from ebuild_analyzer.parser.optfeature import OptFeatureDependencies
+from ebuild_analyzer.utils import ast_node_utils
 
 
 class OptFeatureDependenciesParser:

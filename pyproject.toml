@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ebuild-analyzer"
+version = "0.1.0"
+description = "Analyzes ebuilds to retrieve information"
+
+requires-python = ">= 3.11"
+dependencies = [
+    "portage",
+    "tree-sitter",
+    "tree-sitter-bash",
+]
+
+[project.scripts]
+ebuild-analyzer = "ebuild_analyzer.main_cli:main"

@@ -1,9 +1,9 @@
 from collections import defaultdict
 from typing import List
 
-from output.ansi import Format, Color
-from parser.optfeature import OptFeature, OptFeatureDependencies, PackageWithUses
-from utils.portage_db import PortageDatabase
+from ebuild_analyzer.output.ansi import Format, Color
+from ebuild_analyzer.parser.optfeature import OptFeature, OptFeatureDependencies, PackageWithUses
+from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
 class OptFeaturesPrinter:
