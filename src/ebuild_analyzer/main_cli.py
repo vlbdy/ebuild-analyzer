@@ -49,6 +49,13 @@ dump_ast_parser.add_argument("package")
 args = parser.parse_args()
 
 
+def dump_ast_for_package(portage_db: PortageDatabase, package: str) -> None:
+    ebuild_path = portage_db.get_ebuild_path_for_package(package)
+    ebuild = Ebuild(ebuild_path)
+    ebuild_ast = Ebuild(ebuild_path).parse_to_ast()
+    dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
+
+
 def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> None:
     ebuild_path = portage_db.get_ebuild_path_for_package(package)
     if args.verbose:
@@ -78,17 +85,14 @@ def main():
     portage_db = PortageDatabase()
 
     try:
-        if command == "dump-ast":
-            ebuild_path = portage_db.get_ebuild_path_for_package(package)
-            ebuild = Ebuild(ebuild_path)
-            ebuild_ast = Ebuild(ebuild_path).parse_to_ast()
-            dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
         if command == "optfeatures":
             if args.all:
                 for package in portage_db.get_all_packages():
                     print_optfeatures_for_package(portage_db, package)
             else:
                 print_optfeatures_for_package(portage_db, package)
+        elif command == "dump-ast":
+            dump_ast_for_package(portage_db, package)
     except RuntimeError as e:
         print(Color.RED(str(e)))
 
