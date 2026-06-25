@@ -64,7 +64,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> 
     ebuild = Ebuild(ebuild_path)
     ebuild_ast = ebuild.parse_to_ast()
 
-    optfeature_ast_nodes = ebuild_ast.get_all_optfeature_nodes()
+    optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type("command", "optfeature")
     optfeatures = OptFeatureParser().parse_multiple_optfeature_nodes(optfeature_ast_nodes)
 
     if not optfeatures:

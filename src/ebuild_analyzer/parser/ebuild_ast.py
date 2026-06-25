@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from tree_sitter import Tree, Node
 
@@ -7,18 +7,19 @@ class EbuildAST:
     def __init__(self, tree: Tree):
         self.__tree = tree
 
-    def get_all_optfeature_nodes(self) -> List[Node]:
-        optfeature_nodes: List[Node] = []
+    def get_all_nodes_of_type(self, node_type: str, prefix: str = Optional[str]) -> List[Node]:
+        nodes: List[Node] = []
 
-        def walk_and_save_optfeature_nodes(node: Node) -> None:
-            if node.type == "command" and node.text.startswith(b"optfeature"):
-                optfeature_nodes.append(node)
+        def walk_and_save_nodes(node: Node) -> None:
+            if node.type == node_type:
+                if prefix is not None and node.text.decode().startswith(prefix):
+                    nodes.append(node)
             for child in node.children:
-                walk_and_save_optfeature_nodes(child)
+                walk_and_save_nodes(child)
 
-        walk_and_save_optfeature_nodes(self.__tree.root_node)
+        walk_and_save_nodes(self.__tree.root_node)
 
-        return optfeature_nodes
+        return nodes
 
     def get_tree(self) -> Tree:
         return self.__tree
