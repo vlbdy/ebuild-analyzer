@@ -16,28 +16,22 @@ class OptFeatureDependenciesParser:
         return optfeature_dependencies
 
     def __parse_node_according_to_type(self, node: Node) -> OptFeatureDependencies:
-        optfeature_dependencies = OptFeatureDependencies()
-        if node.type == "list":
-            optfeature_dependencies += self.__parse_optfeature_list_parent(node)
+        dependencies = OptFeatureDependencies()
+        if node.type == "command":
+            dependencies += self.__parse_command_node(node)
+        elif node.type == "negated_command":
+            command_node = ast_node_utils.find_closest_child_command_node(node)
+            negated_dependencies = self.__parse_command_node(command_node)
+            dependencies.negated_add(negated_dependencies)
+        elif node.type == "list":
+            for child in node.children:
+                dependencies += self.__parse_node_according_to_type(child)
         elif node.type == "if_statement":
             for condition_node in ast_node_utils.get_all_if_statement_condition_nodes(node):
-                optfeature_dependencies += self.__parse_node_according_to_type(condition_node)
-        return optfeature_dependencies
-
-    def __parse_optfeature_list_parent(self, list_parent: Node) -> OptFeatureDependencies:
-        dependencies = OptFeatureDependencies()
-
-        for child in list_parent.children:
-            if child.type == "command":
-                dependencies += self.__parse_command_dependency_node(child)
-            elif child.type == "negated_command":
-                command_node = ast_node_utils.find_closest_child_command_node(child)
-                negated_dependencies = self.__parse_command_dependency_node(command_node)
-                dependencies.negated_add(negated_dependencies)
-
+                dependencies += self.__parse_node_according_to_type(condition_node)
         return dependencies
 
-    def __parse_command_dependency_node(self, command_node: Node) -> OptFeatureDependencies:
+    def __parse_command_node(self, command_node: Node) -> OptFeatureDependencies:
         dependencies = OptFeatureDependencies()
 
         command = ast_node_utils.get_command_name_from_command_node(command_node)
