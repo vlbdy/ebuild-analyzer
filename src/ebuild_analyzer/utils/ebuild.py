@@ -5,7 +5,7 @@ import portage.versions
 import tree_sitter_bash
 from tree_sitter import Parser, Language
 
-from ebuild_analyzer.parser.ebuild_ast import EbuildAST
+from ebuild_analyzer.ast.ebuild_ast import EbuildAST
 from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 

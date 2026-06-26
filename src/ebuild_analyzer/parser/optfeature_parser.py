@@ -5,7 +5,7 @@ from tree_sitter import Node
 
 from ebuild_analyzer.parser.optfeature import OptFeature, PackageWithUses
 from ebuild_analyzer.parser.optfeature_dependencies_parser import OptFeatureDependenciesParser
-from ebuild_analyzer.utils import ast_node_utils
+from ebuild_analyzer.ast import ast_node_utils
 
 
 class OptFeatureParser:
