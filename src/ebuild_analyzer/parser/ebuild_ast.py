@@ -12,7 +12,9 @@ class EbuildAST:
 
         def walk_and_save_nodes(node: Node) -> None:
             if node.type == node_type:
-                if prefix is not None and node.text.decode().startswith(prefix):
+                if prefix is None:
+                    nodes.append(node)
+                elif node.text.decode().startswith(prefix):
                     nodes.append(node)
             for child in node.children:
                 walk_and_save_nodes(child)

@@ -52,7 +52,7 @@ args = parser.parse_args()
 def dump_ast_for_package(portage_db: PortageDatabase, package: str) -> None:
     ebuild_path = portage_db.get_ebuild_path_for_package(package)
     ebuild = Ebuild(ebuild_path)
-    ebuild_ast = Ebuild(ebuild_path).parse_to_ast()
+    ebuild_ast = ebuild.parse_to_ast()
     dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
 
 
