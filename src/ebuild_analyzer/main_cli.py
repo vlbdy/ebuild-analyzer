@@ -51,7 +51,7 @@ args = parser.parse_args()
 
 def dump_ast_for_package(portage_db: PortageDatabase, package: str) -> None:
     ebuild_path = portage_db.get_ebuild_path_for_package(package)
-    ebuild = Ebuild(ebuild_path)
+    ebuild = Ebuild(package, portage_db, ebuild_path)
     ebuild_ast = ebuild.parse_to_ast()
     dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
 
@@ -61,7 +61,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> 
     if args.verbose:
         print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
 
-    ebuild = Ebuild(ebuild_path)
+    ebuild = Ebuild(package, portage_db, ebuild_path)
     ebuild_ast = ebuild.parse_to_ast()
 
     optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type("command", "optfeature")
