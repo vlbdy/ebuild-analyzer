@@ -2,12 +2,14 @@ from typing import List, Optional
 
 from tree_sitter import Tree, Node
 
+from ebuild_analyzer.ast.node_types import NodeType
+
 
 class EbuildAST:
     def __init__(self, tree: Tree):
         self.__tree = tree
 
-    def get_all_nodes_of_type(self, node_type: str, prefix: Optional[str] = None) -> List[Node]:
+    def get_all_nodes_of_type(self, node_type: NodeType, prefix: Optional[str] = None) -> List[Node]:
         nodes: List[Node] = []
 
         def walk_and_save_nodes(node: Node) -> None:

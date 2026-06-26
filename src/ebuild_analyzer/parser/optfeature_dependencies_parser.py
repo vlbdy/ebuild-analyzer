@@ -1,5 +1,6 @@
 from tree_sitter import Node
 
+from ebuild_analyzer.ast.node_types import NodeType
 from ebuild_analyzer.parser.optfeature import OptFeatureDependencies
 from ebuild_analyzer.ast import ast_node_utils
 
@@ -9,7 +10,7 @@ class OptFeatureDependenciesParser:
         optfeature_dependencies = OptFeatureDependencies()
 
         current_node = optfeature_node.parent
-        while current_node.type != "program":
+        while current_node.type != NodeType.PROGRAM:
             optfeature_dependencies += self.__parse_node_according_to_type(current_node)
             current_node = current_node.parent
 
@@ -17,16 +18,16 @@ class OptFeatureDependenciesParser:
 
     def __parse_node_according_to_type(self, node: Node) -> OptFeatureDependencies:
         dependencies = OptFeatureDependencies()
-        if node.type == "command":
+        if node.type == NodeType.COMMAND:
             dependencies += self.__parse_command_node(node)
-        elif node.type == "negated_command":
-            command_node = ast_node_utils.find_closest_child_node_of_type("command", node)
+        elif node.type == NodeType.NEGATED_COMMAND:
+            command_node = ast_node_utils.find_closest_child_node_of_type(NodeType.COMMAND, node)
             negated_dependencies = self.__parse_command_node(command_node)
             dependencies.negated_add(negated_dependencies)
-        elif node.type == "list":
+        elif node.type == NodeType.LIST:
             for child in node.children:
                 dependencies += self.__parse_node_according_to_type(child)
-        elif node.type == "if_statement":
+        elif node.type == NodeType.IF_STATEMENT:
             for condition_node in ast_node_utils.get_all_if_statement_condition_nodes(node):
                 dependencies += self.__parse_node_according_to_type(condition_node)
         return dependencies
