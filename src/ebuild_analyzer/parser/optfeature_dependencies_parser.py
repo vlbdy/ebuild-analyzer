@@ -1,8 +1,9 @@
 from tree_sitter import Node
 
+from ebuild_analyzer.ast import ast_node_utils
+from ebuild_analyzer.ast.command import Command
 from ebuild_analyzer.ast.node_types import NodeType
 from ebuild_analyzer.parser.optfeature import OptFeatureDependencies
-from ebuild_analyzer.ast import ast_node_utils
 
 
 class OptFeatureDependenciesParser:
@@ -37,13 +38,13 @@ class OptFeatureDependenciesParser:
 
         command = ast_node_utils.get_command_name_from_command_node(command_node)
         arguments = ast_node_utils.get_arguments_from_command_node(command_node)
-        if command == "use":
+        if command == Command.USE:
             use_flag = arguments[0]
             if use_flag.startswith('!'):
                 dependencies.disabled_use_flags.append(use_flag)
             else:
                 dependencies.enabled_use_flags.append(use_flag)
-        elif command == "has_version":
+        elif command == Command.HAS_VERSION:
             dependencies.installed_packages.append(arguments[0])
 
         return dependencies

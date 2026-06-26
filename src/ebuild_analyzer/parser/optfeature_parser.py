@@ -3,9 +3,10 @@ from typing import List, Tuple
 
 from tree_sitter import Node
 
+from ebuild_analyzer.ast import ast_node_utils
+from ebuild_analyzer.ast.command import Command
 from ebuild_analyzer.parser.optfeature import OptFeature, PackageWithUses
 from ebuild_analyzer.parser.optfeature_dependencies_parser import OptFeatureDependenciesParser
-from ebuild_analyzer.ast import ast_node_utils
 
 
 class OptFeatureParser:
@@ -17,7 +18,7 @@ class OptFeatureParser:
         optfeatures: List[OptFeature] = []
 
         for node in optfeature_ast_nodes:
-            if node.text.startswith(b"optfeature_header"):
+            if node.text.decode().startswith(Command.OPTFEATURE_HEADER):
                 header_arguments = ast_node_utils.get_arguments_from_command_node(node)
                 current_header = header_arguments[0] if header_arguments else None
             else:

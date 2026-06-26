@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+from ebuild_analyzer.ast.command import Command
 from ebuild_analyzer.ast.node_types import NodeType
 from ebuild_analyzer.debug import dump_ast
 from ebuild_analyzer.output.ansi import Format, Color
@@ -65,7 +66,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> 
     ebuild = Ebuild(package, portage_db, ebuild_path)
     ebuild_ast = ebuild.parse_to_ast()
 
-    optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.COMMAND, "optfeature")
+    optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.COMMAND, Command.OPTFEATURE)
     optfeatures = OptFeatureParser().parse_multiple_optfeature_nodes(optfeature_ast_nodes)
 
     if not optfeatures:
