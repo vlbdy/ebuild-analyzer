@@ -4,8 +4,8 @@ import sys
 from portage.exception import InvalidAtom
 
 from ebuild_analyzer.ast.bash_parser import BashParser
-from ebuild_analyzer.ast.command import Command
-from ebuild_analyzer.ast.node_types import NodeType
+from ebuild_analyzer.ast.enums.command import Command
+from ebuild_analyzer.ast.enums.node_types import NodeType
 from ebuild_analyzer.debug import dump_ast
 from ebuild_analyzer.extractor.optfeatures_extractor import OptFeaturesExtractor
 from ebuild_analyzer.output.ansi import Format, Color

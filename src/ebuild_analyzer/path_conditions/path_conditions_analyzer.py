@@ -1,8 +1,8 @@
 from tree_sitter import Node
 
 from ebuild_analyzer.ast import ast_node_utils
-from ebuild_analyzer.ast.command import Command
-from ebuild_analyzer.ast.node_types import NodeType
+from ebuild_analyzer.ast.enums.command import Command
+from ebuild_analyzer.ast.enums.node_types import NodeType
 from ebuild_analyzer.path_conditions.path_conditions import PathConditions
 
 

@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from tree_sitter import Tree, Node
 
-from ebuild_analyzer.ast.node_types import NodeType
+from ebuild_analyzer.ast.enums.node_types import NodeType
 
 
 class BashAST:

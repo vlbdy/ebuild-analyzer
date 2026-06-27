@@ -2,7 +2,7 @@ from typing import List
 
 from tree_sitter import Node
 
-from ebuild_analyzer.ast.node_types import NodeType
+from ebuild_analyzer.ast.enums.node_types import NodeType
 
 
 def find_closest_child_node_of_type(node_type: NodeType, node: Node) -> Node:
