@@ -3,6 +3,14 @@ from typing import List
 import portage
 
 
+class AmbiguousPackageException(Exception):
+    pass
+
+
+class PackageNotFoundException(Exception):
+    pass
+
+
 class PortageDatabase:
     def __init__(self) -> None:
         self.__db = portage.db[portage.root]["vartree"].dbapi
@@ -27,9 +35,9 @@ class PortageDatabase:
     def get_cpv_for_package(self, package: str) -> str:
         candidate_cpvs = self.__db.match(package)
         if len(candidate_cpvs) > 1:
-            raise RuntimeError(f"Ambiguous package '{package}', candidates are: {candidate_cpvs}")
+            raise AmbiguousPackageException(f"Ambiguous package '{package}', candidates are: {candidate_cpvs}")
         elif not candidate_cpvs:
-            raise RuntimeError(f"Package '{package}' not found")
+            raise PackageNotFoundException(f"Package '{package}' not found")
         return candidate_cpvs[0]
 
     def get_metadata_key(self, cpv: str, key: str) -> str:
