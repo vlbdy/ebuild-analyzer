@@ -5,7 +5,7 @@ from tree_sitter import Tree, Node
 from ebuild_analyzer.ast.node_types import NodeType
 
 
-class EbuildAST:
+class BashAST:
     def __init__(self, tree: Tree):
         self.__tree = tree
 

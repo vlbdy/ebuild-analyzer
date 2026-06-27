@@ -2,10 +2,7 @@ import re
 from typing import Dict
 
 import portage.versions
-import tree_sitter_bash
-from tree_sitter import Parser, Language
 
-from ebuild_analyzer.ast.ebuild_ast import EbuildAST
 from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
@@ -21,11 +18,6 @@ class Ebuild:
             ebuild_contents = self.__join_line_continuations(ebuild_contents)
             ebuild_contents = self.__expand_variables(ebuild_contents)
             return ebuild_contents
-
-    def parse_to_ast(self) -> EbuildAST:
-        parser = Parser()
-        parser.language = Language(tree_sitter_bash.language())
-        return EbuildAST(parser.parse(self.get_normalized_contents()))
 
     def __join_line_continuations(self, ebuild_contents: bytes) -> bytes:
         return re.sub(rb'\\\n\s*', b'', ebuild_contents)

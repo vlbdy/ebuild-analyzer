@@ -3,6 +3,7 @@ import sys
 
 from portage.exception import InvalidAtom
 
+from ebuild_analyzer.ast.bash_parser import BashParser
 from ebuild_analyzer.ast.command import Command
 from ebuild_analyzer.ast.node_types import NodeType
 from ebuild_analyzer.debug import dump_ast
@@ -56,7 +57,7 @@ args = parser.parse_args()
 def dump_ast_for_package(portage_db: PortageDatabase, package: str) -> None:
     ebuild_path = portage_db.get_ebuild_path_for_package(package)
     ebuild = Ebuild(package, portage_db, ebuild_path)
-    ebuild_ast = ebuild.parse_to_ast()
+    ebuild_ast = BashParser().parse(ebuild.get_normalized_contents())
     dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
 
 
@@ -66,7 +67,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> 
         print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
 
     ebuild = Ebuild(package, portage_db, ebuild_path)
-    ebuild_ast = ebuild.parse_to_ast()
+    ebuild_ast = BashParser().parse(ebuild.get_normalized_contents())
 
     optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.COMMAND, Command.OPTFEATURE)
     optfeatures = OptFeaturesExtractor().extract(optfeature_ast_nodes)
