@@ -5,13 +5,13 @@ from tree_sitter import Node
 
 from ebuild_analyzer.ast import ast_node_utils
 from ebuild_analyzer.ast.command import Command
-from ebuild_analyzer.parser.optfeature import OptFeature, PackageWithUses
-from ebuild_analyzer.parser.optfeature_dependencies_parser import OptFeatureDependenciesParser
+from ebuild_analyzer.extractor.optfeature import OptFeature, PackageWithUses
+from ebuild_analyzer.path_conditions.path_conditions_analyzer import PathConditionsAnalyzer
 
 
 class OptFeaturesExtractor:
     def __init__(self):
-        self.__dependencies_parser = OptFeatureDependenciesParser()
+        self.__conditions_analyzer = PathConditionsAnalyzer()
 
     def extract(self, optfeature_ast_nodes: List[Node]) -> List[OptFeature]:
         current_header = None
@@ -28,8 +28,8 @@ class OptFeaturesExtractor:
 
     def __extract_single_node(self, optfeature_ast_node: Node, header: str) -> OptFeature:
         description, package_combinations = self.__extract_optfeature_command_arguments(optfeature_ast_node)
-        optfeature_dependencies = self.__dependencies_parser.parse(optfeature_ast_node)
-        return OptFeature(optfeature_dependencies, header, description, package_combinations)
+        visibility_conditions = self.__conditions_analyzer.analyze(optfeature_ast_node)
+        return OptFeature(visibility_conditions, header, description, package_combinations)
 
     def __extract_optfeature_command_arguments(self, optfeature_command_node: Node) \
             -> Tuple[str, List[List[PackageWithUses]]]:

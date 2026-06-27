@@ -6,9 +6,9 @@ from portage.exception import InvalidAtom
 from ebuild_analyzer.ast.command import Command
 from ebuild_analyzer.ast.node_types import NodeType
 from ebuild_analyzer.debug import dump_ast
+from ebuild_analyzer.extractor.optfeatures_extractor import OptFeaturesExtractor
 from ebuild_analyzer.output.ansi import Format, Color
 from ebuild_analyzer.output.optfeatures_printer import OptFeaturesPrinter
-from ebuild_analyzer.parser.optfeatures_extractor import OptFeaturesExtractor
 from ebuild_analyzer.utils.ebuild import Ebuild
 from ebuild_analyzer.utils.portage_db import PortageDatabase, AmbiguousPackageException, PackageNotFoundException
 

@@ -1,22 +1,15 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
-
-
-@dataclass(frozen=True)
-class PackageWithUses:
-    package_name: str
-    enabled_use_flags: Optional[List[str]]
-    disabled_use_flags: Optional[List[str]]
+from typing import List
 
 
 @dataclass
-class OptFeatureDependencies:
+class PathConditions:
     enabled_use_flags: List[str] = field(default_factory=list)
     disabled_use_flags: List[str] = field(default_factory=list)
     installed_packages: List[str] = field(default_factory=list)
     uninstalled_packages: List[str] = field(default_factory=list)
 
-    def __iadd__(self, other: OptFeatureDependencies) -> OptFeatureDependencies:
+    def __iadd__(self, other: PathConditions) -> PathConditions:
         self.enabled_use_flags += other.enabled_use_flags
         self.disabled_use_flags += other.disabled_use_flags
         self.installed_packages += other.installed_packages
@@ -24,19 +17,9 @@ class OptFeatureDependencies:
         return self
 
     # Commands can be negated in bash with '!', this is a helper method
-    def negated_add(self, other: OptFeatureDependencies) -> OptFeatureDependencies:
+    def negated_add(self, other: PathConditions) -> PathConditions:
         self.enabled_use_flags += other.disabled_use_flags
         self.disabled_use_flags += other.enabled_use_flags
         self.installed_packages += other.uninstalled_packages
         self.uninstalled_packages += other.installed_packages
         return self
-
-
-@dataclass(frozen=True)
-class OptFeature:
-    visibility_dependencies: OptFeatureDependencies
-
-    header: Optional[str]
-
-    description: str
-    possible_feature_dependencies: List[List[PackageWithUses]]

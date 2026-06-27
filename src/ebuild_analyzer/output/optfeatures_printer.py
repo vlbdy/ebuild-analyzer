@@ -2,7 +2,8 @@ from collections import defaultdict
 from typing import List
 
 from ebuild_analyzer.output.ansi import Format, Color
-from ebuild_analyzer.parser.optfeature import OptFeature, OptFeatureDependencies, PackageWithUses
+from ebuild_analyzer.extractor.optfeature import OptFeature, PackageWithUses
+from ebuild_analyzer.path_conditions.path_conditions import PathConditions
 from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
@@ -28,9 +29,9 @@ class OptFeaturesPrinter:
                 print(f"{' ' * indentation}{Format.BOLD(optfeature.description)} ", end='')
                 self.__print_feature_availability(optfeature)
 
-                if optfeature.visibility_dependencies:
-                    self.__print_optfeature_visibility_dependencies(target_package, optfeature.visibility_dependencies,
-                                                                    indentation)
+                if optfeature.visibility_conditions:
+                    self.__print_optfeature_visibility_conditions(target_package, optfeature.visibility_conditions,
+                                                                  indentation)
                 self.__print_packages_required_to_enable_optfeature(optfeature.possible_feature_dependencies,
                                                                     indentation)
                 print()
@@ -61,29 +62,28 @@ class OptFeaturesPrinter:
                 return True
         return False
 
-    def __print_optfeature_visibility_dependencies(self, target_package: str,
-                                                   visibility_dependencies: OptFeatureDependencies,
-                                                   base_indentation: int) -> None:
+    def __print_optfeature_visibility_conditions(self, target_package: str, visibility_conditions: PathConditions,
+                                                 base_indentation: int) -> None:
         indentation = base_indentation + 4
-        if visibility_dependencies.installed_packages:
+        if visibility_conditions.installed_packages:
             print(f"{' ' * indentation}Advertised when the following packages are installed: [", end='')
-            self.__print_packages_list(visibility_dependencies.installed_packages)
+            self.__print_packages_list(visibility_conditions.installed_packages)
             print(']')
 
-        if visibility_dependencies.uninstalled_packages:
+        if visibility_conditions.uninstalled_packages:
             print(f"{' ' * indentation}Advertised when the following packages are not installed: [", end='')
-            self.__print_packages_list(visibility_dependencies.uninstalled_packages,
+            self.__print_packages_list(visibility_conditions.uninstalled_packages,
                                        installed_color=Color.RED, uninstalled_color=Color.GREEN)
             print(']')
 
-        if visibility_dependencies.enabled_use_flags:
+        if visibility_conditions.enabled_use_flags:
             print(f"{' ' * indentation}Advertised when the following USE flags are enabled: [", end='')
-            self.__print_use_flags_to_enable_list(target_package, visibility_dependencies.enabled_use_flags)
+            self.__print_use_flags_to_enable_list(target_package, visibility_conditions.enabled_use_flags)
             print(']')
 
-        if visibility_dependencies.disabled_use_flags:
+        if visibility_conditions.disabled_use_flags:
             print(f"{' ' * indentation}Advertised when the following USE flags are disabled: [", end='')
-            self.__print_use_flags_to_disable_list(target_package, visibility_dependencies.disabled_use_flags)
+            self.__print_use_flags_to_disable_list(target_package, visibility_conditions.disabled_use_flags)
             print(']')
 
     def __print_packages_required_to_enable_optfeature(self, package_combinations: List[List[PackageWithUses]],
@@ -100,8 +100,8 @@ class OptFeaturesPrinter:
 
     def __print_packages_list(self, packages: List[str], installed_color: Color = Color.GREEN,
                               uninstalled_color: Color = Color.RED) -> None:
-        for i, dependency in enumerate(packages):
-            self.__print_colored_package_name(dependency, 0, installed_color, uninstalled_color)
+        for i, package in enumerate(packages):
+            self.__print_colored_package_name(package, 0, installed_color, uninstalled_color)
 
             if i != len(packages) - 1:
                 print(', ', end='')
