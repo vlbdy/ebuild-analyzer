@@ -8,7 +8,7 @@ from ebuild_analyzer.ast.node_types import NodeType
 from ebuild_analyzer.debug import dump_ast
 from ebuild_analyzer.output.ansi import Format, Color
 from ebuild_analyzer.output.optfeatures_printer import OptFeaturesPrinter
-from ebuild_analyzer.parser.optfeature_parser import OptFeatureParser
+from ebuild_analyzer.parser.optfeatures_extractor import OptFeaturesExtractor
 from ebuild_analyzer.utils.ebuild import Ebuild
 from ebuild_analyzer.utils.portage_db import PortageDatabase, AmbiguousPackageException, PackageNotFoundException
 
@@ -69,7 +69,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> 
     ebuild_ast = ebuild.parse_to_ast()
 
     optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.COMMAND, Command.OPTFEATURE)
-    optfeatures = OptFeatureParser().parse_multiple_optfeature_nodes(optfeature_ast_nodes)
+    optfeatures = OptFeaturesExtractor().extract(optfeature_ast_nodes)
 
     if not optfeatures:
         if args.verbose:

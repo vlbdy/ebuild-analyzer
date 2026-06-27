@@ -9,11 +9,11 @@ from ebuild_analyzer.parser.optfeature import OptFeature, PackageWithUses
 from ebuild_analyzer.parser.optfeature_dependencies_parser import OptFeatureDependenciesParser
 
 
-class OptFeatureParser:
+class OptFeaturesExtractor:
     def __init__(self):
         self.__dependencies_parser = OptFeatureDependenciesParser()
 
-    def parse_multiple_optfeature_nodes(self, optfeature_ast_nodes: List[Node]) -> List[OptFeature]:
+    def extract(self, optfeature_ast_nodes: List[Node]) -> List[OptFeature]:
         current_header = None
         optfeatures: List[OptFeature] = []
 
@@ -22,16 +22,17 @@ class OptFeatureParser:
                 header_arguments = ast_node_utils.get_arguments_from_command_node(node)
                 current_header = header_arguments[0] if header_arguments else None
             else:
-                optfeatures.append(self.parse_single_optfeature_node(node, current_header))
+                optfeatures.append(self.__extract_single_node(node, current_header))
 
         return optfeatures
 
-    def parse_single_optfeature_node(self, optfeature_ast_node: Node, header: str) -> OptFeature:
-        description, package_combinations = self.__parse_optfeature_command(optfeature_ast_node)
+    def __extract_single_node(self, optfeature_ast_node: Node, header: str) -> OptFeature:
+        description, package_combinations = self.__extract_optfeature_command_arguments(optfeature_ast_node)
         optfeature_dependencies = self.__dependencies_parser.parse(optfeature_ast_node)
         return OptFeature(optfeature_dependencies, header, description, package_combinations)
 
-    def __parse_optfeature_command(self, optfeature_command_node: Node) -> Tuple[str, List[List[PackageWithUses]]]:
+    def __extract_optfeature_command_arguments(self, optfeature_command_node: Node) \
+            -> Tuple[str, List[List[PackageWithUses]]]:
         description, *package_combinations = ast_node_utils.get_arguments_from_command_node(optfeature_command_node)
 
         package_combination_lists: List[List[PackageWithUses]] = []
@@ -70,11 +71,11 @@ class OptFeatureParser:
         package_name = package_string[:start]
         use_flags = package_string[start + 1:end].split(",")
 
-        enabled_use_flags, disabled_use_flags = self.__parse_use_flag_categories(use_flags)
+        enabled_use_flags, disabled_use_flags = self.__determine_use_flag_categories(use_flags)
 
         return PackageWithUses(package_name, enabled_use_flags, disabled_use_flags)
 
-    def __parse_use_flag_categories(self, use_flags: List[str]) -> Tuple[List[str], List[str]]:
+    def __determine_use_flag_categories(self, use_flags: List[str]) -> Tuple[List[str], List[str]]:
         enabled_use_flags = []
         disabled_use_flags = []
         for use_flag in use_flags:
