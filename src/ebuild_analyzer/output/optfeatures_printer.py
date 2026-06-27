@@ -31,8 +31,8 @@ class OptFeaturesPrinter:
                 if optfeature.visibility_dependencies:
                     self.__print_optfeature_visibility_dependencies(target_package, optfeature.visibility_dependencies,
                                                                     indentation)
-                self.__print_package_required_to_enable_optfeature(optfeature.possible_feature_dependencies,
-                                                                   indentation)
+                self.__print_packages_required_to_enable_optfeature(optfeature.possible_feature_dependencies,
+                                                                    indentation)
                 print()
 
     def __print_feature_availability(self, optfeature: OptFeature) -> None:
@@ -86,8 +86,8 @@ class OptFeaturesPrinter:
             self.__print_use_flags_to_disable_list(target_package, visibility_dependencies.disabled_use_flags)
             print(']')
 
-    def __print_package_required_to_enable_optfeature(self, package_combinations: List[List[PackageWithUses]],
-                                                      base_indentation: int) -> None:
+    def __print_packages_required_to_enable_optfeature(self, package_combinations: List[List[PackageWithUses]],
+                                                       base_indentation: int) -> None:
         indentation = base_indentation + 4
         print(f"{' ' * indentation}Required packages to enable the feature:")
         for i, package_combo in enumerate(package_combinations):
