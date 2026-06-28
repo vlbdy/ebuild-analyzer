@@ -67,27 +67,36 @@ class OptFeaturesPrinter:
     def __print_optfeature_visibility_conditions(self, target_package: str,
                                                  visibility_conditions: List[PathCondition]) -> None:
         with self.__buffer.scoped_indent():
-            for conditions in visibility_conditions:
-                if conditions.installed_packages:
-                    self.__buffer.indented_push("Advertised when the following packages are installed: [")
-                    self.__print_packages_list(conditions.installed_packages)
-                    self.__buffer.push("]\n")
+            self.__buffer.indented_push("Advertised when:\n")
+            with self.__buffer.scoped_indent():
+                for i, condition in enumerate(visibility_conditions):
+                    self.__print_optfeature_visibility_condition(target_package, condition)
+                    if i != len(visibility_conditions) - 1:
+                        self.__buffer.push_indent()
+                        self.__buffer.indented_push(Format.BOLD(" or\n"))
+                        self.__buffer.pop_indent()
 
-                if conditions.uninstalled_packages:
-                    self.__buffer.indented_push("Advertised when the following packages are not installed: [")
-                    self.__print_packages_list(conditions.uninstalled_packages,
-                                               installed_color=Color.RED, uninstalled_color=Color.GREEN)
-                    self.__buffer.push("]\n")
+    def __print_optfeature_visibility_condition(self, target_package: str, visibility_condition: PathCondition) -> None:
+        if visibility_condition.installed_packages:
+            self.__buffer.indented_push("The following packages are installed: [")
+            self.__print_packages_list(visibility_condition.installed_packages)
+            self.__buffer.push("]\n")
 
-                if conditions.enabled_use_flags:
-                    self.__buffer.indented_push("Advertised when the following USE flags are enabled: [")
-                    self.__print_use_flags_to_enable_list(target_package, conditions.enabled_use_flags)
-                    self.__buffer.push("]\n")
+        if visibility_condition.uninstalled_packages:
+            self.__buffer.indented_push("The following packages are not installed: [")
+            self.__print_packages_list(visibility_condition.uninstalled_packages,
+                                       installed_color=Color.RED, uninstalled_color=Color.GREEN)
+            self.__buffer.push("]\n")
 
-                if conditions.disabled_use_flags:
-                    self.__buffer.indented_push("Advertised when the following USE flags are disabled: [")
-                    self.__print_use_flags_to_disable_list(target_package, conditions.disabled_use_flags)
-                    self.__buffer.push("]\n")
+        if visibility_condition.enabled_use_flags:
+            self.__buffer.indented_push("The following USE flags are enabled: [")
+            self.__print_use_flags_to_enable_list(target_package, visibility_condition.enabled_use_flags)
+            self.__buffer.push("]\n")
+
+        if visibility_condition.disabled_use_flags:
+            self.__buffer.indented_push("The following USE flags are disabled: [")
+            self.__print_use_flags_to_disable_list(target_package, visibility_condition.disabled_use_flags)
+            self.__buffer.push("]\n")
 
     def __print_packages_required_to_enable_optfeature(self, package_combinations: List[List[PackageWithUses]]) -> None:
         with self.__buffer.scoped_indent():
