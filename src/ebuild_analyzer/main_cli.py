@@ -27,6 +27,13 @@ parser.add_argument(
     help="Verbose messages",
     default=False,
 )
+parser.add_argument(
+    "--no-visibility-conditions", "--nvc",
+    dest="show_visibility_conditions",
+    action="store_false",
+    help="Hide the conditions required for an optfeature to be visible",
+    default=True
+)
 
 subparsers = parser.add_subparsers(
     dest="command",
@@ -61,7 +68,7 @@ def dump_ast_for_package(portage_db: PortageDatabase, package: str) -> None:
     dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
 
 
-def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> None:
+def print_optfeatures_for_package(portage_db: PortageDatabase, package: str, show_visibility_conditions: bool) -> None:
     ebuild_path = portage_db.get_ebuild_path_for_package(package)
     if args.verbose:
         print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
@@ -76,7 +83,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package: str) -> 
         if args.verbose:
             print(f"Package '{package}' has no optional features")
         return
-    OptFeaturesPrinter(portage_db).print_optfeatures(package, optfeatures)
+    OptFeaturesPrinter(portage_db, show_visibility_conditions).print_optfeatures(package, optfeatures)
 
 
 def main():
@@ -91,11 +98,12 @@ def main():
 
     try:
         if command == "optfeatures":
+            show_visibility_conditions = args.show_visibility_conditions
             if args.all:
                 for package in portage_db.get_all_packages():
-                    print_optfeatures_for_package(portage_db, package)
+                    print_optfeatures_for_package(portage_db, package, show_visibility_conditions)
             else:
-                print_optfeatures_for_package(portage_db, package)
+                print_optfeatures_for_package(portage_db, package, show_visibility_conditions)
         elif command == "dump-ast":
             dump_ast_for_package(portage_db, package)
     except (AmbiguousPackageException, PackageNotFoundException) as e:
