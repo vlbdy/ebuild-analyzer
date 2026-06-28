@@ -1,8 +1,8 @@
-import argparse
 import sys
 
 from portage.exception import InvalidAtom
 
+from ebuild_analyzer import arguments_parser
 from ebuild_analyzer.ast.bash_parser import BashParser
 from ebuild_analyzer.ast.enums.command import Command
 from ebuild_analyzer.ast.enums.node_types import NodeType
@@ -13,52 +13,7 @@ from ebuild_analyzer.output.optfeatures_printer import OptFeaturesPrinter
 from ebuild_analyzer.utils.ebuild import Ebuild
 from ebuild_analyzer.utils.portage_db import PortageDatabase, AmbiguousPackageException, PackageNotFoundException
 
-parser = argparse.ArgumentParser(prog="ebuild-analyzer")
-
-parser.add_argument(
-    "--all", "-a",
-    action="store_true",
-    help="Query all installed packages",
-    default=False,
-)
-parser.add_argument(
-    "--verbose", "-v",
-    action="store_true",
-    help="Verbose messages",
-    default=False,
-)
-parser.add_argument(
-    "--no-visibility-conditions", "--nvc",
-    dest="show_visibility_conditions",
-    action="store_false",
-    help="Hide the conditions required for an optfeature to be visible",
-    default=True
-)
-
-subparsers = parser.add_subparsers(
-    dest="command",
-    required=True,
-)
-
-optfeatures_parser = subparsers.add_parser(
-    "optfeatures",
-    help="Extract optfeatures",
-)
-optfeatures_parser.add_argument("package", nargs="?")
-
-kernel_parser = subparsers.add_parser(
-    "kernel-config",
-    help="Extract kernel config requirements",
-)
-kernel_parser.add_argument("package", nargs="?")
-
-dump_ast_parser = subparsers.add_parser(
-    "dump-ast",
-    help="Dump tree sitter AST for the ebuild (for debugging)"
-)
-dump_ast_parser.add_argument("package")
-
-args = parser.parse_args()
+args = arguments_parser.create().parse_args()
 
 
 def dump_ast_for_package(portage_db: PortageDatabase, package: str) -> None:
