@@ -11,3 +11,4 @@ class NodeType(StrEnum):
     IF_STATEMENT = "if_statement"
     THEN = "then"
     PROGRAM = "program"
+    OR = "||"

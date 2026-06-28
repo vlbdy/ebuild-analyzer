@@ -4,7 +4,7 @@ from typing import List
 from ebuild_analyzer.extractor.optfeature import OptFeature, PackageWithUses
 from ebuild_analyzer.output.ansi import Format, Color
 from ebuild_analyzer.output.output_buffer import OutputBuffer
-from ebuild_analyzer.path_conditions.path_conditions import PathConditions
+from ebuild_analyzer.path_conditions.path_condition import PathCondition
 from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
@@ -64,28 +64,29 @@ class OptFeaturesPrinter:
         return False
 
     def __print_optfeature_visibility_conditions(self, target_package: str,
-                                                 visibility_conditions: PathConditions) -> None:
+                                                 visibility_conditions: List[PathCondition]) -> None:
         with self.__buffer.scoped_indent():
-            if visibility_conditions.installed_packages:
-                self.__buffer.indented_push("Advertised when the following packages are installed: [")
-                self.__print_packages_list(visibility_conditions.installed_packages)
-                self.__buffer.push("]\n")
+            for conditions in visibility_conditions:
+                if conditions.installed_packages:
+                    self.__buffer.indented_push("Advertised when the following packages are installed: [")
+                    self.__print_packages_list(conditions.installed_packages)
+                    self.__buffer.push("]\n")
 
-            if visibility_conditions.uninstalled_packages:
-                self.__buffer.indented_push("Advertised when the following packages are not installed: [")
-                self.__print_packages_list(visibility_conditions.uninstalled_packages,
-                                           installed_color=Color.RED, uninstalled_color=Color.GREEN)
-                self.__buffer.push("]\n")
+                if conditions.uninstalled_packages:
+                    self.__buffer.indented_push("Advertised when the following packages are not installed: [")
+                    self.__print_packages_list(conditions.uninstalled_packages,
+                                               installed_color=Color.RED, uninstalled_color=Color.GREEN)
+                    self.__buffer.push("]\n")
 
-            if visibility_conditions.enabled_use_flags:
-                self.__buffer.indented_push("Advertised when the following USE flags are enabled: [")
-                self.__print_use_flags_to_enable_list(target_package, visibility_conditions.enabled_use_flags)
-                self.__buffer.push("]\n")
+                if conditions.enabled_use_flags:
+                    self.__buffer.indented_push("Advertised when the following USE flags are enabled: [")
+                    self.__print_use_flags_to_enable_list(target_package, conditions.enabled_use_flags)
+                    self.__buffer.push("]\n")
 
-            if visibility_conditions.disabled_use_flags:
-                self.__buffer.indented_push("Advertised when the following USE flags are disabled: [")
-                self.__print_use_flags_to_disable_list(target_package, visibility_conditions.disabled_use_flags)
-                self.__buffer.push("]\n")
+                if conditions.disabled_use_flags:
+                    self.__buffer.indented_push("Advertised when the following USE flags are disabled: [")
+                    self.__print_use_flags_to_disable_list(target_package, conditions.disabled_use_flags)
+                    self.__buffer.push("]\n")
 
     def __print_packages_required_to_enable_optfeature(self, package_combinations: List[List[PackageWithUses]]) -> None:
         with self.__buffer.scoped_indent():

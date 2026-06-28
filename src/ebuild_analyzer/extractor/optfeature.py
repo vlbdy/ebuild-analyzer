@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from ebuild_analyzer.path_conditions.path_conditions import PathConditions
+from ebuild_analyzer.path_conditions.path_condition import PathCondition
 
 
 @dataclass(frozen=True)
@@ -13,7 +13,7 @@ class PackageWithUses:
 
 @dataclass(frozen=True)
 class OptFeature:
-    visibility_conditions: PathConditions
+    visibility_conditions: List[PathCondition]
 
     header: Optional[str]
 

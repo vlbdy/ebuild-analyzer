@@ -39,3 +39,7 @@ def get_all_if_statement_condition_nodes(if_statement_node: Node) -> List[Node]:
         condition_nodes.append(child)
 
     return condition_nodes
+
+
+def is_command_node(node: Node) -> bool:
+    return node.type in (NodeType.COMMAND, NodeType.NEGATED_COMMAND)
