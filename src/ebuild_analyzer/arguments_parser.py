@@ -17,10 +17,10 @@ def create() -> ArgumentParser:
         default=False,
     )
     parser.add_argument(
-        "--no-visibility-conditions", "--nvc",
-        dest="show_visibility_conditions",
+        "--no-ad-conditions", "--nac",
+        dest="show_ad_conditions",
         action="store_false",
-        help="Hide the conditions required for an optfeature to be visible",
+        help="Hide the conditions required for an optfeature to be advertised",
         default=True
     )
 

@@ -23,7 +23,7 @@ def dump_ast_for_package(portage_db: PortageDatabase, package: str) -> None:
     dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
 
 
-def print_optfeatures_for_package(portage_db: PortageDatabase, package: str, show_visibility_conditions: bool) -> None:
+def print_optfeatures_for_package(portage_db: PortageDatabase, package: str, show_ad_conditions: bool) -> None:
     ebuild_path = portage_db.get_ebuild_path_for_package(package)
     if args.verbose:
         print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
@@ -38,7 +38,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package: str, sho
         if args.verbose:
             print(f"Package '{package}' has no optional features")
         return
-    OptFeaturesPrinter(portage_db, show_visibility_conditions).print_optfeatures(package, optfeatures)
+    OptFeaturesPrinter(portage_db, show_ad_conditions).print_optfeatures(package, optfeatures)
 
 
 def main():
@@ -53,12 +53,12 @@ def main():
 
     try:
         if command == "optfeatures":
-            show_visibility_conditions = args.show_visibility_conditions
+            show_ad_conditions = args.show_ad_conditions
             if args.all:
                 for package in portage_db.get_all_packages():
-                    print_optfeatures_for_package(portage_db, package, show_visibility_conditions)
+                    print_optfeatures_for_package(portage_db, package, show_ad_conditions)
             else:
-                print_optfeatures_for_package(portage_db, package, show_visibility_conditions)
+                print_optfeatures_for_package(portage_db, package, show_ad_conditions)
         elif command == "dump-ast":
             dump_ast_for_package(portage_db, package)
     except (AmbiguousPackageException, PackageNotFoundException) as e:

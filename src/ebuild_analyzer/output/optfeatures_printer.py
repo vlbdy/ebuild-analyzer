@@ -9,9 +9,9 @@ from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
 class OptFeaturesPrinter:
-    def __init__(self, portage_db: PortageDatabase, show_visibility_conditions: bool) -> None:
+    def __init__(self, portage_db: PortageDatabase, show_ad_conditions: bool) -> None:
         self.__portage_db = portage_db
-        self.__show_visibility_conditions = show_visibility_conditions
+        self.show_ad_conditions = show_ad_conditions
         self.__buffer = OutputBuffer()
 
     def print_optfeatures(self, target_package: str, optfeatures: List[OptFeature]) -> None:
@@ -31,7 +31,7 @@ class OptFeaturesPrinter:
                 self.__buffer.indented_push(Format.BOLD(optfeature.description))
                 self.__print_feature_availability(optfeature)
 
-                if optfeature.visibility_conditions and self.__show_visibility_conditions:
+                if optfeature.visibility_conditions and self.show_ad_conditions:
                     self.__print_optfeature_visibility_conditions(target_package, optfeature.visibility_conditions)
                 self.__print_packages_required_to_enable_optfeature(optfeature.possible_feature_dependencies)
                 self.__buffer.push('\n')
