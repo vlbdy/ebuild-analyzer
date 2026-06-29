@@ -14,5 +14,10 @@ dependencies = [
     "tree-sitter-bash",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+
 [project.scripts]
 ebuild-analyzer = "ebuild_analyzer.main_cli:main"
