@@ -7,7 +7,7 @@ from ebuild_analyzer.ast.exceptions.no_matching_child_node_exception import NoMa
 from ebuild_analyzer.ast.exceptions.unexpected_node_type_exception import UnexpectedNodeTypeException
 
 
-def find_closest_child_node_of_type(node_type: NodeType, node: Node) -> Node:
+def find_closest_direct_child_node_of_type(node_type: NodeType, node: Node) -> Node:
     for child in node.children:
         if child.type == node_type:
             return child
@@ -17,7 +17,7 @@ def find_closest_child_node_of_type(node_type: NodeType, node: Node) -> Node:
 def get_command_name_from_command_node(command_node: Node) -> str:
     if command_node.type != NodeType.COMMAND:
         raise UnexpectedNodeTypeException(NodeType.COMMAND, command_node.type)
-    return find_closest_child_node_of_type(NodeType.COMMAND_NAME, command_node).text.decode()
+    return find_closest_direct_child_node_of_type(NodeType.COMMAND_NAME, command_node).text.decode()
 
 
 def get_arguments_from_command_node(command_node: Node) -> List[str]:

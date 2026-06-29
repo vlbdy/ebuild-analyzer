@@ -35,7 +35,7 @@ class PathConditionsAnalyzer:
             path_condition += self.__analyze_command_node(node)
 
         elif node.type == NodeType.NEGATED_COMMAND:
-            command_node = ast_node_utils.find_closest_child_node_of_type(NodeType.COMMAND, node)
+            command_node = ast_node_utils.find_closest_direct_child_node_of_type(NodeType.COMMAND, node)
             negated_path_conditions = self.__analyze_command_node(command_node)
             path_condition.negated_add(negated_path_conditions)
 
@@ -95,7 +95,7 @@ class PathConditionsAnalyzer:
         if node.type == NodeType.COMMAND:
             return self.__does_command_node_refer_to_optfeature(node)
         elif node.type == NodeType.NEGATED_COMMAND:
-            command_node = ast_node_utils.find_closest_child_node_of_type(NodeType.COMMAND, node)
+            command_node = ast_node_utils.find_closest_direct_child_node_of_type(NodeType.COMMAND, node)
             return self.__does_command_node_refer_to_optfeature(command_node)
         else:
             return False
