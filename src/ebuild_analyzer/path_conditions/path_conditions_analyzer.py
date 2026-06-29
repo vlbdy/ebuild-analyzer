@@ -57,6 +57,11 @@ class PathConditionsAnalyzer:
                 path_conditions = self.__combine_conditions(path_conditions, new_path_conditions)
             else:
                 path_conditions.extend(new_path_conditions)
+                # This check is specifically for cases where an optfeature command follows a condition like:
+                #   has_version ... || optfeature ...
+                # In this case, the optfeature is advertised if the condition is *not* met, therefore we must negate it.
+                if self.__is_optfeature_command_node(condition_node):
+                    path_conditions = self.__negate_path_conditions(path_conditions)
             last_node_type = condition_node.type
 
         return path_conditions
@@ -85,3 +90,22 @@ class PathConditionsAnalyzer:
             return first.copy()
 
         return [first_condition + second_condition for first_condition in first for second_condition in second]
+
+    def __is_optfeature_command_node(self, node: Node) -> bool:
+        if node.type == NodeType.COMMAND:
+            return self.__does_command_node_refer_to_optfeature(node)
+        elif node.type == NodeType.NEGATED_COMMAND:
+            command_node = ast_node_utils.find_closest_child_node_of_type(NodeType.COMMAND, node)
+            return self.__does_command_node_refer_to_optfeature(command_node)
+        else:
+            return False
+
+    def __does_command_node_refer_to_optfeature(self, command_node: Node) -> bool:
+        command = ast_node_utils.get_command_name_from_command_node(command_node)
+        return command.startswith(Command.OPTFEATURE) and not command.startswith(Command.OPTFEATURE_HEADER)
+
+    def __negate_path_conditions(self, conditions: List[PathCondition]) -> List[PathCondition]:
+        new_conditions: List[PathCondition] = []
+        for condition in conditions:
+            new_conditions = self.__combine_conditions(condition.negate(), new_conditions)
+        return new_conditions
