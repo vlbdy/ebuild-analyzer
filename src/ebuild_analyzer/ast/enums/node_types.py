@@ -12,3 +12,4 @@ class NodeType(StrEnum):
     THEN = "then"
     PROGRAM = "program"
     OR = "||"
+    AND = "&&"

@@ -43,3 +43,7 @@ def get_all_if_statement_condition_nodes(if_statement_node: Node) -> List[Node]:
 
 def is_command_node(node: Node) -> bool:
     return node.type in (NodeType.COMMAND, NodeType.NEGATED_COMMAND)
+
+
+def is_compound_node(node: Node) -> bool:
+    return node.type in (NodeType.IF_STATEMENT, NodeType.LIST)

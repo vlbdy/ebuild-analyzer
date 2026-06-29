@@ -15,14 +15,20 @@ class PathConditionsAnalyzer:
         current_node = node.parent
         while current_node.type != NodeType.PROGRAM:
             current_node_path_conditions = self.__analyze_node_according_to_type(current_node)
-            path_conditions = self.__merge_path_conditions_with_multiple_and_conditions(path_conditions,
-                                                                                        current_node_path_conditions)
+            path_conditions = self.__combine_conditions(path_conditions, current_node_path_conditions)
             current_node = current_node.parent
 
         return path_conditions
 
     def __analyze_node_according_to_type(self, node: Node) -> List[PathCondition]:
-        path_conditions: List[PathCondition] = []
+        if ast_node_utils.is_command_node(node):
+            return [self.__analyze_simple_node(node)]
+        elif ast_node_utils.is_compound_node(node):
+            return self.__analyze_compound_node(node)
+        else:
+            return []
+
+    def __analyze_simple_node(self, node: Node) -> PathCondition:
         path_condition = PathCondition()
 
         if node.type == NodeType.COMMAND:
@@ -33,28 +39,26 @@ class PathConditionsAnalyzer:
             negated_path_conditions = self.__analyze_command_node(command_node)
             path_condition.negated_add(negated_path_conditions)
 
-        elif node.type == NodeType.LIST:
-            for child in node.children:
-                if child.type == NodeType.OR and path_condition:
-                    path_conditions.append(path_condition)
-                    path_condition = PathCondition()
+        return path_condition
 
-                current_node_path_conditions = self.__analyze_node_according_to_type(child)
-                path_conditions.extend(
-                    self.__merge_path_conditions_with_and_condition(path_condition, current_node_path_conditions))
-
+    def __analyze_compound_node(self, node: Node) -> List[PathCondition]:
+        condition_nodes: List[Node] = []
+        if node.type == NodeType.LIST:
+            condition_nodes = node.children
         elif node.type == NodeType.IF_STATEMENT:
-            for condition_node in ast_node_utils.get_all_if_statement_condition_nodes(node):
-                if condition_node.type == NodeType.OR and path_condition:
-                    path_conditions.append(path_condition)
-                    path_condition = PathCondition()
+            condition_nodes = ast_node_utils.get_all_if_statement_condition_nodes(node)
 
-                current_node_path_conditions = self.__analyze_node_according_to_type(condition_node)
-                path_conditions.extend(
-                    self.__merge_path_conditions_with_and_condition(path_condition, current_node_path_conditions))
+        path_conditions: List[PathCondition] = []
 
-        if path_condition:
-            path_conditions.append(path_condition)
+        last_node_type = NodeType.PROGRAM  # Placeholder
+        for condition_node in condition_nodes:
+            new_path_conditions = self.__analyze_node_according_to_type(condition_node)
+            if last_node_type == NodeType.AND:
+                path_conditions = self.__combine_conditions(path_conditions, new_path_conditions)
+            else:
+                path_conditions.extend(new_path_conditions)
+            last_node_type = condition_node.type
+
         return path_conditions
 
     def __analyze_command_node(self, command_node: Node) -> PathCondition:
@@ -73,23 +77,11 @@ class PathConditionsAnalyzer:
 
         return path_conditions
 
-    def __merge_path_conditions_with_and_condition(self, and_condition: PathCondition,
-                                                   path_conditions: List[PathCondition]) -> List[PathCondition]:
-        merged_path_conditions = []
-        for path_condition in path_conditions:
-            merged_path_conditions.append(path_condition + and_condition)
-        return merged_path_conditions
-
-    def __merge_path_conditions_with_multiple_and_conditions(self, and_conditions: List[PathCondition],
-                                                             path_conditions: List[PathCondition]) \
+    def __combine_conditions(self, first: List[PathCondition], second: List[PathCondition]) \
             -> List[PathCondition]:
-        if not and_conditions:
-            return path_conditions
-        elif not path_conditions:
-            return and_conditions
+        if not first:
+            return second.copy()
+        if not second:
+            return first.copy()
 
-        merged_path_conditions = []
-        for and_condition in and_conditions:
-            merged_path_conditions.extend(
-                self.__merge_path_conditions_with_and_condition(and_condition, path_conditions))
-        return merged_path_conditions
+        return [first_condition + second_condition for first_condition in first for second_condition in second]
