@@ -1,4 +1,4 @@
-from ebuild_analyzer.optfeature.optfeature import OptFeature
+from ebuild_analyzer.optfeatures.optfeature import OptFeature
 from ebuild_analyzer.package_atoms.package_atom import PackageAtom
 from ebuild_analyzer.utils.package_state_provider import PackageStateProvider
 

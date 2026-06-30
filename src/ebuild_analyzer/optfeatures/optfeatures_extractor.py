@@ -4,7 +4,7 @@ from tree_sitter import Node
 
 from ebuild_analyzer.ast import ast_node_utils
 from ebuild_analyzer.ast.enums.command import Command
-from ebuild_analyzer.optfeature.optfeature import OptFeature
+from ebuild_analyzer.optfeatures.optfeature import OptFeature
 from ebuild_analyzer.package_atoms.package_atom import PackageAtom
 from ebuild_analyzer.package_atoms.package_atom_parser import PackageAtomParser
 from ebuild_analyzer.path_conditions.path_conditions_analyzer import PathConditionsAnalyzer

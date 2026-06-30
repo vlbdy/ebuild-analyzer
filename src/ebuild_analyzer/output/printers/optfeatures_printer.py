@@ -1,8 +1,8 @@
 from collections import defaultdict
 from typing import List
 
-from ebuild_analyzer.optfeature.optfeature import OptFeature
-from ebuild_analyzer.optfeature.optfeature_availability_checker import OptFeatureAvailabilityChecker
+from ebuild_analyzer.optfeatures.optfeature import OptFeature
+from ebuild_analyzer.optfeatures.optfeature_availability_checker import OptFeatureAvailabilityChecker
 from ebuild_analyzer.output.ansi import Format, Color
 from ebuild_analyzer.output.output_buffer import OutputBuffer
 from ebuild_analyzer.package_atoms.package_atom import PackageAtom
