@@ -2,6 +2,8 @@ from typing import List
 
 import portage
 
+from ebuild_analyzer.utils.package_state_provider import PackageStateProvider
+
 
 class AmbiguousPackageException(Exception):
     pass
@@ -11,7 +13,7 @@ class PackageNotFoundException(Exception):
     pass
 
 
-class PortageDatabase:
+class PortageDatabase(PackageStateProvider):
     def __init__(self) -> None:
         self.__db = portage.db[portage.root]["vartree"].dbapi
 

@@ -7,15 +7,15 @@ from ebuild_analyzer.output.ansi import Format, Color
 from ebuild_analyzer.output.output_buffer import OutputBuffer
 from ebuild_analyzer.package_atoms.package_atom import PackageAtom
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
-from ebuild_analyzer.utils.portage_db import PortageDatabase
+from ebuild_analyzer.utils.package_state_provider import PackageStateProvider
 
 
 class OptFeaturesPrinter:
-    def __init__(self, portage_db: PortageDatabase, show_ad_conditions: bool) -> None:
-        self.__portage_db = portage_db
+    def __init__(self, package_state_provider: PackageStateProvider, show_ad_conditions: bool) -> None:
+        self.__package_state_provider = package_state_provider
         self.__show_ad_conditions = show_ad_conditions
         self.__buffer = OutputBuffer()
-        self.__optfeature_availability_checker = OptFeatureAvailabilityChecker(portage_db)
+        self.__optfeature_availability_checker = OptFeatureAvailabilityChecker(package_state_provider)
 
     def print(self, package_atom_text: str, optfeatures: List[OptFeature]) -> None:
         self.__buffer.push(Color.LIGHT_PURPLE(Format.BOLD(f"Optional features for package {package_atom_text}:\n")))
@@ -141,20 +141,20 @@ class OptFeaturesPrinter:
         self.__buffer.enable_indentation()
 
     def __print_colored_use_flag_to_disable(self, target_package: str, use_flag: str) -> None:
-        if not self.__portage_db.is_use_flag_enabled(target_package, use_flag):
+        if not self.__package_state_provider.is_use_flag_enabled(target_package, use_flag):
             self.__buffer.push(Color.GREEN(f"-{use_flag}"))
         else:
             self.__buffer.push(Color.RED(f"-{use_flag}"))
 
     def __print_colored_use_flag_to_enable(self, target_package: str, use_flag: str) -> None:
-        if self.__portage_db.is_use_flag_enabled(target_package, use_flag):
+        if self.__package_state_provider.is_use_flag_enabled(target_package, use_flag):
             self.__buffer.push(Color.GREEN(use_flag))
         else:
             self.__buffer.push(Color.RED(use_flag))
 
     def __print_colored_package_atom(self, package_atom_text: str, installed_color: Color = Color.GREEN,
                                      uninstalled_color: Color = Color.RED) -> None:
-        if self.__portage_db.is_package_installed(package_atom_text):
+        if self.__package_state_provider.is_package_installed(package_atom_text):
             self.__buffer.push(installed_color(package_atom_text))
         else:
             self.__buffer.push(uninstalled_color(package_atom_text))
