@@ -5,7 +5,7 @@ from tree_sitter import Node
 
 from ebuild_analyzer.ast import ast_node_utils
 from ebuild_analyzer.ast.enums.command import Command
-from ebuild_analyzer.extractor.optfeature import OptFeature, PackageWithUses
+from ebuild_analyzer.extractors.optfeature import OptFeature, PackageWithUses
 from ebuild_analyzer.path_conditions.path_conditions_analyzer import PathConditionsAnalyzer
 
 

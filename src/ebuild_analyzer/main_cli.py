@@ -7,7 +7,7 @@ from ebuild_analyzer.ast.bash_parser import BashParser
 from ebuild_analyzer.ast.enums.command import Command
 from ebuild_analyzer.ast.enums.node_types import NodeType
 from ebuild_analyzer.debug import dump_ast
-from ebuild_analyzer.extractor.optfeatures_extractor import OptFeaturesExtractor
+from ebuild_analyzer.extractors.optfeatures_extractor import OptFeaturesExtractor
 from ebuild_analyzer.output.ansi import Format, Color
 from ebuild_analyzer.output.printers.optfeatures_printer import OptFeaturesPrinter
 from ebuild_analyzer.utils.ebuild import Ebuild

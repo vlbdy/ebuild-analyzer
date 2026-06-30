@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List
 
-from ebuild_analyzer.extractor.optfeature import OptFeature, PackageWithUses
+from ebuild_analyzer.extractors.optfeature import OptFeature, PackageWithUses
 from ebuild_analyzer.output.ansi import Format, Color
 from ebuild_analyzer.output.output_buffer import OutputBuffer
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
