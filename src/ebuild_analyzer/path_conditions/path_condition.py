@@ -1,4 +1,3 @@
-from copy import copy
 from dataclasses import dataclass, field
 from typing import List
 
@@ -18,9 +17,12 @@ class PathCondition:
         return self
 
     def __add__(self, other: PathCondition) -> PathCondition:
-        new_path_conditions = copy(self)
-        new_path_conditions += other
-        return new_path_conditions
+        return PathCondition(
+            enabled_use_flags=self.enabled_use_flags + other.enabled_use_flags,
+            disabled_use_flags=self.disabled_use_flags + other.disabled_use_flags,
+            installed_packages=self.installed_packages + other.installed_packages,
+            uninstalled_packages=self.uninstalled_packages + other.uninstalled_packages,
+        )
 
     def __bool__(self) -> bool:
         return bool(
