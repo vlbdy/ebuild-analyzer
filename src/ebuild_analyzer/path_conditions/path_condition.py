@@ -26,6 +26,12 @@ class PathCondition:
         return bool(
             self.enabled_use_flags or self.disabled_use_flags or self.installed_packages or self.uninstalled_packages)
 
+    def __eq__(self, other: PathCondition) -> bool:
+        return (set(self.enabled_use_flags) == set(other.enabled_use_flags)
+                and set(self.disabled_use_flags) == set(other.disabled_use_flags)
+                and set(self.installed_packages) == set(other.installed_packages)
+                and set(self.uninstalled_packages) == set(other.uninstalled_packages))
+
     # Commands can be negated in bash with '!', this is a helper method
     def negated_add(self, other: PathCondition) -> PathCondition:
         self.enabled_use_flags += other.disabled_use_flags
