@@ -74,7 +74,7 @@ class PathConditionsAnalyzer:
         if command == Command.USE:
             use_flag = arguments[0]
             if use_flag.startswith('!'):
-                path_conditions.disabled_use_flags.append(use_flag)
+                path_conditions.disabled_use_flags.append(use_flag[1:])
             else:
                 path_conditions.enabled_use_flags.append(use_flag)
         elif command == Command.HAS_VERSION:
