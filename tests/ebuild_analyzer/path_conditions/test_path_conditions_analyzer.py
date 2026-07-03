@@ -37,8 +37,6 @@ def test_no_conditions(bash_parser: BashParser, path_conditions_analyzer: PathCo
 
     (b"use !a && optfeature", [PathCondition(disabled_use_flags=['a'])]),
     (b"! use a && optfeature", [PathCondition(disabled_use_flags=['a'])]),
-
-    # TODO: Fails (b"use a && optfeature && use b", [PathCondition(enabled_use_flags=['a'])]),
 ])
 def test_short_circuit_conditions(bash: bytes, expected_path_conditions: List[PathCondition], bash_parser: BashParser,
                                   path_conditions_analyzer: PathConditionsAnalyzer):
@@ -84,9 +82,6 @@ def test_if_statement_conditions(bash: bytes, expected_path_conditions: List[Pat
      [PathCondition(enabled_use_flags=['a', 'b', 'c']), PathCondition(enabled_use_flags=['a', 'b', 'd'])]),
     (b"if use a || use b; then if use c && use d; then optfeature; fi; fi",
      [PathCondition(enabled_use_flags=['a', 'c', 'd']), PathCondition(enabled_use_flags=['b', 'c', 'd'])]),
-
-    # TODO: The tests with the form `use a || use b && use c` are not completely correct since they are missing the case
-    #       where PathCondition(enabled_use_flags=['a', 'b', 'c']), the analyzer does not realize this yet
 ])
 def test_nested_if_statement_conditions(bash: bytes, expected_path_conditions: List[PathCondition],
                                         bash_parser: BashParser, path_conditions_analyzer: PathConditionsAnalyzer):
@@ -105,5 +100,32 @@ def test_nested_if_statement_conditions(bash: bytes, expected_path_conditions: L
 def test_if_conditions_mixed_with_short_circuit_conditions(bash: bytes, expected_path_conditions: List[PathCondition],
                                                            bash_parser: BashParser,
                                                            path_conditions_analyzer: PathConditionsAnalyzer):
+    command_node = __get_optfeature_command_node(bash_parser, bash)
+    assert path_conditions_analyzer.analyze(command_node) == expected_path_conditions
+
+
+@pytest.mark.xfail(reason="Not implemented")
+@pytest.mark.parametrize("bash, expected_path_conditions", [
+    (b"use a && optfeature && use b", [PathCondition(enabled_use_flags=['a'])]),
+
+    # The following test cases are similar to the test cases in `test_nested_if_statement_conditions`.
+    # The difference is that those tests are technically also supposed to have the extra PathCondition added
+    # to the end (where all the conditions in the OR'd commands are met).
+    (b"if use a; then if use b || use c; then optfeature; fi; fi",
+     [PathCondition(enabled_use_flags=['a', 'b']), PathCondition(enabled_use_flags=['a', 'c']),
+      PathCondition(enabled_use_flags=['a', 'b', 'c'])]),
+    (b"if use a || use b; then if use c; then optfeature; fi; fi",
+     [PathCondition(enabled_use_flags=['a', 'c']), PathCondition(enabled_use_flags=['b', 'c']),
+      PathCondition(enabled_use_flags=['a', 'b', 'c'])]),
+
+    (b"if use a && use b; then if use c || use d; then optfeature; fi; fi",
+     [PathCondition(enabled_use_flags=['a', 'b', 'c']), PathCondition(enabled_use_flags=['a', 'b', 'd']),
+      PathCondition(enabled_use_flags=['a', 'b', 'c', 'd'])]),
+    (b"if use a || use b; then if use c && use d; then optfeature; fi; fi",
+     [PathCondition(enabled_use_flags=['a', 'c', 'd']), PathCondition(enabled_use_flags=['b', 'c', 'd']),
+      PathCondition(enabled_use_flags=['a', 'b', 'c', 'd'])]),
+])
+def test_unimplemented_cases(bash: bytes, expected_path_conditions: List[PathCondition], bash_parser: BashParser,
+                             path_conditions_analyzer: PathConditionsAnalyzer):
     command_node = __get_optfeature_command_node(bash_parser, bash)
     assert path_conditions_analyzer.analyze(command_node) == expected_path_conditions
