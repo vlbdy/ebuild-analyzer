@@ -8,7 +8,7 @@ class PackageAtomParser:
     def parse(self, package_string: str) -> PackageAtom:
         # Package atoms can have USE flag requirements listed next to them within square brackets
         if '[' not in package_string:
-            return PackageAtom(package_string, [], [])
+            return PackageAtom(package_string)
 
         start = package_string.index("[")
         end = package_string.index("]", start)
