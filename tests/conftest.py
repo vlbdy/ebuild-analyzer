@@ -1,6 +1,7 @@
 import pytest
 
 from ebuild_analyzer.ast.bash_parser import BashParser
+from ebuild_analyzer.optfeatures.optfeatures_extractor import OptFeaturesExtractor
 from ebuild_analyzer.package_atoms.package_atom_normalizer import PackageAtomNormalizer
 from ebuild_analyzer.package_atoms.package_atom_parser import PackageAtomParser
 from ebuild_analyzer.path_conditions.path_conditions_analyzer import PathConditionsAnalyzer
@@ -24,3 +25,8 @@ def package_atom_normalizer() -> PackageAtomNormalizer:
 @pytest.fixture(scope='session')
 def path_conditions_analyzer() -> PathConditionsAnalyzer:
     return PathConditionsAnalyzer()
+
+
+@pytest.fixture(scope='session')
+def optfeatures_extractor() -> OptFeaturesExtractor:
+    return OptFeaturesExtractor()
