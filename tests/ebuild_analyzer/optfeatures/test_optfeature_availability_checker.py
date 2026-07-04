@@ -9,10 +9,10 @@ from ebuild_analyzer.utils.package_state_provider import PackageStateProvider
 
 
 class MockPackageStateProvider(PackageStateProvider):
-    def is_package_installed(self, package: str) -> bool:
-        return package.startswith("installed")
+    def is_package_installed(self, package_atom: PackageAtom) -> bool:
+        return package_atom.text.startswith("installed")
 
-    def is_use_flag_enabled(self, package: str, use_flag: str) -> bool:
+    def is_use_flag_enabled(self, package_atom: PackageAtom, use_flag: str) -> bool:
         return use_flag.startswith("enabled")
 
 

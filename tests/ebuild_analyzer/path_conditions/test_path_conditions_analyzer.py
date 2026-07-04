@@ -5,6 +5,7 @@ from tree_sitter import Node
 
 from ebuild_analyzer.ast.bash_parser import BashParser
 from ebuild_analyzer.ast.enums.node_types import NodeType
+from ebuild_analyzer.package_atoms.package_atom import PackageAtom
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
 from ebuild_analyzer.path_conditions.path_conditions_analyzer import PathConditionsAnalyzer
 
@@ -24,8 +25,8 @@ def test_no_conditions(bash_parser: BashParser, path_conditions_analyzer: PathCo
     (b"use a && optfeature", [PathCondition(enabled_use_flags=['a'])]),
     (b"use a || optfeature", [PathCondition(disabled_use_flags=['a'])]),
 
-    (b"has_version pkg && optfeature", [PathCondition(installed_packages=['pkg'])]),
-    (b"has_version pkg || optfeature", [PathCondition(uninstalled_packages=['pkg'])]),
+    (b"has_version pkg && optfeature", [PathCondition(installed_packages=[PackageAtom('pkg')])]),
+    (b"has_version pkg || optfeature", [PathCondition(uninstalled_packages=[PackageAtom('pkg')])]),
 
     (b"use a && use b && optfeature", [PathCondition(enabled_use_flags=['a', 'b'])]),
     (b"use a || use b && optfeature", [PathCondition(enabled_use_flags=['a']), PathCondition(enabled_use_flags=['b'])]),
@@ -35,7 +36,8 @@ def test_no_conditions(bash_parser: BashParser, path_conditions_analyzer: PathCo
     (b"use a && use b || use c && optfeature",
      [PathCondition(enabled_use_flags=['a', 'b']), PathCondition(enabled_use_flags=['c'])]),
 
-    (b"use a && has_version pkg && optfeature", [PathCondition(enabled_use_flags=['a'], installed_packages=['pkg'])]),
+    (b"use a && has_version pkg && optfeature",
+     [PathCondition(enabled_use_flags=['a'], installed_packages=[PackageAtom('pkg')])]),
 
     (b"use !a && optfeature", [PathCondition(disabled_use_flags=['a'])]),
     (b"! use a && optfeature", [PathCondition(disabled_use_flags=['a'])]),
@@ -48,7 +50,7 @@ def test_short_circuit_conditions(bash: bytes, expected_path_conditions: List[Pa
 
 @pytest.mark.parametrize("bash, expected_path_conditions", [
     (b"if use a; then optfeature; fi", [PathCondition(enabled_use_flags=['a'])]),
-    (b"if has_version pkg; then optfeature; fi", [PathCondition(installed_packages=['pkg'])]),
+    (b"if has_version pkg; then optfeature; fi", [PathCondition(installed_packages=[PackageAtom('pkg')])]),
 
     (b"if use a && use b; then optfeature; fi", [PathCondition(enabled_use_flags=['a', 'b'])]),
     (b"if use a || use b; then optfeature; fi",
@@ -70,7 +72,7 @@ def test_if_statement_conditions(bash: bytes, expected_path_conditions: List[Pat
 @pytest.mark.parametrize("bash, expected_path_conditions", [
     (b"if use a; then if use b; then optfeature; fi; fi", [PathCondition(enabled_use_flags=['a', 'b'])]),
     (b"if use a; then if has_version pkg; then optfeature; fi; fi",
-     [PathCondition(enabled_use_flags=['a'], installed_packages=['pkg'])]),
+     [PathCondition(enabled_use_flags=['a'], installed_packages=[PackageAtom('pkg')])]),
 
     (b"if use a && use b; then if use c; then optfeature; fi; fi", [PathCondition(enabled_use_flags=['a', 'b', 'c'])]),
     (b"if use a; then if use b && use c; then optfeature; fi; fi", [PathCondition(enabled_use_flags=['a', 'b', 'c'])]),

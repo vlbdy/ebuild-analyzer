@@ -17,8 +17,8 @@ class OptFeaturesPrinter:
         self.__buffer = OutputBuffer()
         self.__optfeature_availability_checker = OptFeatureAvailabilityChecker(package_state_provider)
 
-    def print(self, package_atom_text: str, optfeatures: List[OptFeature]) -> None:
-        self.__buffer.push(Color.LIGHT_PURPLE(Format.BOLD(f"Optional features for package {package_atom_text}:\n")))
+    def print(self, package_atom: PackageAtom, optfeatures: List[OptFeature]) -> None:
+        self.__buffer.push(Color.LIGHT_PURPLE(Format.BOLD(f"Optional features for package {package_atom.text}:\n")))
         self.__buffer.push_indent()
 
         optfeatures_groups = defaultdict(list)
@@ -35,7 +35,7 @@ class OptFeaturesPrinter:
                 self.__print_feature_availability(optfeature)
 
                 if optfeature.visibility_conditions and self.__show_ad_conditions:
-                    self.__print_optfeature_visibility_conditions(package_atom_text, optfeature.visibility_conditions)
+                    self.__print_optfeature_visibility_conditions(package_atom, optfeature.visibility_conditions)
                 self.__print_packages_required_to_enable_optfeature(optfeature.possible_feature_dependencies)
                 self.__buffer.push('\n')
             self.__buffer.pop_indent()
@@ -51,19 +51,19 @@ class OptFeaturesPrinter:
             self.__buffer.push(Color.RED(Format.BOLD("Not Available")))
         self.__buffer.push(Color.BLUE("]\n"))
 
-    def __print_optfeature_visibility_conditions(self, target_package: str,
+    def __print_optfeature_visibility_conditions(self, package_atom: PackageAtom,
                                                  visibility_conditions: List[PathCondition]) -> None:
         with self.__buffer.scoped_indent():
             self.__buffer.indented_push("Advertised when:\n")
             with self.__buffer.scoped_indent():
                 for i, condition in enumerate(visibility_conditions):
-                    self.__print_optfeature_visibility_condition(target_package, condition)
+                    self.__print_optfeature_visibility_condition(package_atom, condition)
                     if i != len(visibility_conditions) - 1:
                         self.__buffer.push_indent()
                         self.__buffer.indented_push(Format.BOLD(" or\n"))
                         self.__buffer.pop_indent()
 
-    def __print_optfeature_visibility_condition(self, target_package: str, visibility_condition: PathCondition) -> None:
+    def __print_optfeature_visibility_condition(self, package_atom: PackageAtom, visibility_condition: PathCondition) -> None:
         if visibility_condition.installed_packages:
             self.__buffer.indented_push("The following packages are installed: [")
             self.__print_packages_list(visibility_condition.installed_packages)
@@ -77,12 +77,12 @@ class OptFeaturesPrinter:
 
         if visibility_condition.enabled_use_flags:
             self.__buffer.indented_push("The following USE flags are enabled: [")
-            self.__print_use_flags_to_enable_list(target_package, visibility_condition.enabled_use_flags)
+            self.__print_use_flags_to_enable_list(package_atom, visibility_condition.enabled_use_flags)
             self.__buffer.push("]\n")
 
         if visibility_condition.disabled_use_flags:
             self.__buffer.indented_push("The following USE flags are disabled: [")
-            self.__print_use_flags_to_disable_list(target_package, visibility_condition.disabled_use_flags)
+            self.__print_use_flags_to_disable_list(package_atom, visibility_condition.disabled_use_flags)
             self.__buffer.push("]\n")
 
     def __print_packages_required_to_enable_optfeature(self, package_combinations: List[List[PackageAtom]]) -> None:
@@ -96,7 +96,7 @@ class OptFeaturesPrinter:
                 else:
                     self.__buffer.push('\n')
 
-    def __print_packages_list(self, packages: List[str], installed_color: Color = Color.GREEN,
+    def __print_packages_list(self, packages: List[PackageAtom], installed_color: Color = Color.GREEN,
                               uninstalled_color: Color = Color.RED) -> None:
         for i, package in enumerate(packages):
             self.__print_colored_package_atom(package, installed_color, uninstalled_color)
@@ -104,16 +104,16 @@ class OptFeaturesPrinter:
             if i != len(packages) - 1:
                 self.__buffer.push(', ')
 
-    def __print_use_flags_to_disable_list(self, target_package: str, use_flags: List[str]) -> None:
+    def __print_use_flags_to_disable_list(self, package_atom: PackageAtom, use_flags: List[str]) -> None:
         for i, use_flag in enumerate(use_flags):
-            self.__print_colored_use_flag_to_disable(target_package, use_flag)
+            self.__print_colored_use_flag_to_disable(package_atom, use_flag)
 
             if i != len(use_flags) - 1:
                 self.__buffer.push(', ')
 
-    def __print_use_flags_to_enable_list(self, target_package: str, use_flags: List[str]) -> None:
+    def __print_use_flags_to_enable_list(self, package_atom: PackageAtom, use_flags: List[str]) -> None:
         for i, use_flag in enumerate(use_flags):
-            self.__print_colored_use_flag_to_enable(target_package, use_flag)
+            self.__print_colored_use_flag_to_enable(package_atom, use_flag)
 
             if i != len(use_flags) - 1:
                 self.__buffer.push(', ')
@@ -122,16 +122,16 @@ class OptFeaturesPrinter:
         with self.__buffer.scoped_indent():
             for i, package in enumerate(package_combo):
                 self.__buffer.indented_push("")
-                self.__print_colored_package_atom(package.text)
+                self.__print_colored_package_atom(package)
 
                 if package.required_enabled_use_flags or package.required_disabled_use_flags:
                     self.__buffer.push('[')
                 if package.required_enabled_use_flags:
-                    self.__print_use_flags_to_enable_list(package.text, package.required_enabled_use_flags)
+                    self.__print_use_flags_to_enable_list(package, package.required_enabled_use_flags)
                     if package.required_disabled_use_flags:
                         self.__buffer.push(', ')
                 if package.required_disabled_use_flags:
-                    self.__print_use_flags_to_disable_list(package.text, package.required_disabled_use_flags)
+                    self.__print_use_flags_to_disable_list(package, package.required_disabled_use_flags)
                 if package.required_enabled_use_flags or package.required_disabled_use_flags:
                     self.__buffer.push(']')
 
@@ -140,21 +140,21 @@ class OptFeaturesPrinter:
                     self.__buffer.disable_indentation()
         self.__buffer.enable_indentation()
 
-    def __print_colored_use_flag_to_disable(self, target_package: str, use_flag: str) -> None:
-        if not self.__package_state_provider.is_use_flag_enabled(target_package, use_flag):
+    def __print_colored_use_flag_to_disable(self, package_atom: PackageAtom, use_flag: str) -> None:
+        if not self.__package_state_provider.is_use_flag_enabled(package_atom, use_flag):
             self.__buffer.push(Color.GREEN(f"-{use_flag}"))
         else:
             self.__buffer.push(Color.RED(f"-{use_flag}"))
 
-    def __print_colored_use_flag_to_enable(self, target_package: str, use_flag: str) -> None:
-        if self.__package_state_provider.is_use_flag_enabled(target_package, use_flag):
+    def __print_colored_use_flag_to_enable(self, package_atom: PackageAtom, use_flag: str) -> None:
+        if self.__package_state_provider.is_use_flag_enabled(package_atom, use_flag):
             self.__buffer.push(Color.GREEN(use_flag))
         else:
             self.__buffer.push(Color.RED(use_flag))
 
-    def __print_colored_package_atom(self, package_atom_text: str, installed_color: Color = Color.GREEN,
+    def __print_colored_package_atom(self, package_atom: PackageAtom, installed_color: Color = Color.GREEN,
                                      uninstalled_color: Color = Color.RED) -> None:
-        if self.__package_state_provider.is_package_installed(package_atom_text):
-            self.__buffer.push(installed_color(package_atom_text))
+        if self.__package_state_provider.is_package_installed(package_atom):
+            self.__buffer.push(installed_color(package_atom.text))
         else:
-            self.__buffer.push(uninstalled_color(package_atom_text))
+            self.__buffer.push(uninstalled_color(package_atom.text))

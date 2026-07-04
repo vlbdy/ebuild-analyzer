@@ -5,10 +5,14 @@ from tree_sitter import Node
 from ebuild_analyzer.ast import ast_node_utils
 from ebuild_analyzer.ast.enums.command import Command
 from ebuild_analyzer.ast.enums.node_types import NodeType
+from ebuild_analyzer.package_atoms.package_atom_parser import PackageAtomParser
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
 
 
 class PathConditionsAnalyzer:
+    def __init__(self):
+        self.__package_atom_parser = PackageAtomParser()
+
     def analyze(self, node: Node) -> List[PathCondition]:
         path_conditions: List[PathCondition] = []
 
@@ -78,7 +82,7 @@ class PathConditionsAnalyzer:
             else:
                 path_conditions.enabled_use_flags.append(use_flag)
         elif command == Command.HAS_VERSION:
-            path_conditions.installed_packages.append(arguments[0])
+            path_conditions.installed_packages.append(self.__package_atom_parser.parse(arguments[0]))
 
         return path_conditions
 

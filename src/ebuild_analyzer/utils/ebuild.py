@@ -1,14 +1,13 @@
 import re
 from typing import Dict
 
-import portage.versions
-
+from ebuild_analyzer.package_atoms.package_cpv import PackageCPV
 from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
 class Ebuild:
-    def __init__(self, package: str, portage_db: PortageDatabase, path: str) -> None:
-        self.__package = package
+    def __init__(self, package_cpv: PackageCPV, portage_db: PortageDatabase, path: str) -> None:
+        self.__package_cpv = package_cpv
         self.__portage_db = portage_db
         self.__path = path
 
@@ -38,17 +37,17 @@ class Ebuild:
     def __get_metadata_variables(self) -> Dict[str, str]:
         # These are metadata variables which were used somewhere in an optfeature
         metadata_keys = ("SLOT",)
-        cpv = self.__portage_db.get_cpv_for_package(self.__package)
-
         metadata_variables: Dict[str, str] = dict()
+
         for key in metadata_keys:
-            metadata_variables[key] = self.__portage_db.get_metadata_key(cpv, key)
+            metadata_variables[key] = self.__portage_db.get_metadata_key(self.__package_cpv, key)
         return metadata_variables
 
     def __get_default_variables(self) -> Dict[str, str]:
-        category, package_name, package_version, package_revision = portage.versions.catpkgsplit(
-            self.__portage_db.get_cpv_for_package(self.__package)
-        )
+        category = self.__package_cpv.category
+        package_name = self.__package_cpv.package
+        package_version = self.__package_cpv.version
+        package_revision = self.__package_cpv.revision
 
         # r0 revisions are omitted in the PF variable
         if package_revision == "r0":

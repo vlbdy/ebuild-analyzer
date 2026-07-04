@@ -15,9 +15,9 @@ class OptFeatureAvailabilityChecker:
 
     def __is_package_dependency_satisfied(self, package_atom: PackageAtom) -> bool:
         return (
-                self.__package_state_provider.is_package_installed(package_atom.text)
-                and all(self.__package_state_provider.is_use_flag_enabled(package_atom.text, use_flag)
+                self.__package_state_provider.is_package_installed(package_atom)
+                and all(self.__package_state_provider.is_use_flag_enabled(package_atom, use_flag)
                         for use_flag in package_atom.required_enabled_use_flags)
-                and all(not self.__package_state_provider.is_use_flag_enabled(package_atom.text, use_flag)
+                and all(not self.__package_state_provider.is_use_flag_enabled(package_atom, use_flag)
                         for use_flag in package_atom.required_disabled_use_flags)
         )
