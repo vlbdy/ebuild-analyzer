@@ -16,13 +16,6 @@ def create() -> ArgumentParser:
         help="Verbose messages",
         default=False,
     )
-    parser.add_argument(
-        "--no-ad-conditions", "--nac",
-        dest="show_ad_conditions",
-        action="store_false",
-        help="Hide the conditions required for an optfeature to be advertised",
-        default=True
-    )
 
     subparsers = parser.add_subparsers(
         dest="command",
@@ -32,6 +25,13 @@ def create() -> ArgumentParser:
     optfeatures_parser = subparsers.add_parser(
         "optfeatures",
         help="Extract optfeatures",
+    )
+    optfeatures_parser.add_argument(
+        "--no-ad-conditions", "--nac",
+        dest="show_ad_conditions",
+        action="store_false",
+        help="Hide the conditions required for an optfeature to be advertised",
+        default=True
     )
     optfeatures_parser.add_argument("package", nargs="?")
 
