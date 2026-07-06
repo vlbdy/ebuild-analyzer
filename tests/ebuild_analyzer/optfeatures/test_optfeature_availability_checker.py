@@ -5,20 +5,24 @@ import pytest
 from ebuild_analyzer.optfeatures.optfeature import OptFeature
 from ebuild_analyzer.optfeatures.optfeature_availability_checker import OptFeatureAvailabilityChecker
 from ebuild_analyzer.package_atoms.package_atom import PackageAtom
-from ebuild_analyzer.utils.package_state_provider import PackageStateProvider
+from ebuild_analyzer.package_atoms.package_cpv import PackageCPV
+from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
-class MockPackageStateProvider(PackageStateProvider):
+class MockPortageDatabase(PortageDatabase):
     def is_package_installed(self, package_atom: PackageAtom) -> bool:
         return package_atom.text.startswith("installed")
 
-    def is_use_flag_enabled(self, package_atom: PackageAtom, use_flag: str) -> bool:
+    def is_use_flag_enabled(self, package_cpv: PackageCPV, use_flag: str) -> bool:
         return use_flag.startswith("enabled")
+
+    def get_best_installed_cpv(self, package_atom: PackageAtom) -> PackageCPV:
+        return PackageCPV.from_string("mock/pkg-1.0.0")
 
 
 @pytest.fixture(scope="module")
 def optfeature_availability_checker() -> OptFeatureAvailabilityChecker:
-    return OptFeatureAvailabilityChecker(MockPackageStateProvider())
+    return OptFeatureAvailabilityChecker(MockPortageDatabase())
 
 
 @pytest.mark.parametrize("possible_dependencies, expected_result", [

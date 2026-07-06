@@ -13,7 +13,7 @@ from ebuild_analyzer.output.printers.optfeatures_printer import OptFeaturesPrint
 from ebuild_analyzer.package_atoms.package_atom_parser import PackageAtomParser
 from ebuild_analyzer.package_atoms.package_cpv import PackageCPV
 from ebuild_analyzer.utils.ebuild import Ebuild
-from ebuild_analyzer.utils.portage_db import PortageDatabase, AmbiguousPackageException, PackageNotFoundException
+from ebuild_analyzer.utils.portage_db import PortageDatabase, PackageNotFoundException
 
 args = arguments_parser.create().parse_args()
 
@@ -40,8 +40,7 @@ def print_optfeatures_for_package(portage_db: PortageDatabase, package_cpv: Pack
         if args.verbose:
             print(f"Package '{package_cpv.text}' has no optional features")
         return
-    package_atom = PackageAtomParser().parse(package_cpv.text)
-    OptFeaturesPrinter(portage_db, show_ad_conditions).print(package_atom, optfeatures)
+    OptFeaturesPrinter(portage_db, show_ad_conditions).print(package_cpv, optfeatures)
 
 
 def main():
@@ -59,15 +58,15 @@ def main():
         if command == "optfeatures":
             show_ad_conditions = args.show_ad_conditions
             if args.all:
-                for package in portage_db.get_all_packages():
+                for package in portage_db.get_all_installed_packages():
                     print_optfeatures_for_package(portage_db, package, show_ad_conditions)
             else:
-                package_atom = package_atom_parser.parse(package)
-                print_optfeatures_for_package(portage_db, portage_db.get_cpv_for_atom(package_atom), show_ad_conditions)
+                package_cpv = portage_db.get_best_installed_cpv(package_atom_parser.parse(package))
+                print_optfeatures_for_package(portage_db, package_cpv, show_ad_conditions)
         elif command == "dump-ast":
-            package_atom = package_atom_parser.parse(package)
-            dump_ast_for_package(portage_db, portage_db.get_cpv_for_atom(package_atom))
-    except (AmbiguousPackageException, PackageNotFoundException) as e:
+            package_cpv = portage_db.get_best_installed_cpv(package_atom_parser.parse(package))
+            dump_ast_for_package(portage_db, package_cpv)
+    except PackageNotFoundException as e:
         print(Color.RED(str(e)))
     except InvalidAtom as e:
         print(Color.RED(f"Invalid package atom: '{e}'"))
