@@ -68,12 +68,12 @@ class OptFeaturesPrinter:
                                                 visibility_condition: PathCondition) -> None:
         if visibility_condition.installed_packages:
             self.__buffer.indented_push("The following packages are installed: [")
-            self.__print_packages_list(visibility_condition.installed_packages)
+            self.__print_package_atoms(visibility_condition.installed_packages)
             self.__buffer.push("]\n")
 
         if visibility_condition.uninstalled_packages:
             self.__buffer.indented_push("The following packages are not installed: [")
-            self.__print_packages_list(visibility_condition.uninstalled_packages,
+            self.__print_package_atoms(visibility_condition.uninstalled_packages,
                                        installed_color=Color.RED, uninstalled_color=Color.GREEN)
             self.__buffer.push("]\n")
 
@@ -98,13 +98,34 @@ class OptFeaturesPrinter:
                 else:
                     self.__buffer.push('\n')
 
-    def __print_packages_list(self, packages: List[PackageAtom], installed_color: Color = Color.GREEN,
+    def __print_package_atoms(self, package_atoms: List[PackageAtom], installed_color: Color = Color.GREEN,
                               uninstalled_color: Color = Color.RED) -> None:
-        for i, package in enumerate(packages):
-            self.__print_colored_package_atom(package, installed_color, uninstalled_color)
+        for i, package_atom in enumerate(package_atoms):
+            self.__print_package_atom(package_atom, installed_color, uninstalled_color)
 
-            if i != len(packages) - 1:
+            if i != len(package_atoms) - 1:
                 self.__buffer.push(', ')
+
+    def __print_package_atom(self, package_atom: PackageAtom, installed_color: Color = Color.GREEN,
+                             uninstalled_color: Color = Color.RED):
+        if not self.__portage_db.does_package_exist(package_atom) or self.__portage_db.is_package_masked(
+                package_atom):
+            self.__print_non_installable_package(package_atom)
+            return
+
+        self.__print_colored_package_atom(package_atom, installed_color, uninstalled_color)
+
+        package_cpv = self.__get_most_relevant_cpv(package_atom)
+        if package_atom.required_enabled_use_flags or package_atom.required_disabled_use_flags:
+            self.__buffer.push('[')
+        if package_atom.required_enabled_use_flags:
+            self.__print_use_flags_to_enable_list(package_cpv, package_atom.required_enabled_use_flags)
+            if package_atom.required_disabled_use_flags:
+                self.__buffer.push(', ')
+        if package_atom.required_disabled_use_flags:
+            self.__print_use_flags_to_disable_list(package_cpv, package_atom.required_disabled_use_flags)
+        if package_atom.required_enabled_use_flags or package_atom.required_disabled_use_flags:
+            self.__buffer.push(']')
 
     def __print_use_flags_to_disable_list(self, package_cpv: PackageCPV, use_flags: List[str]) -> None:
         for i, use_flag in enumerate(use_flags):
@@ -123,30 +144,8 @@ class OptFeaturesPrinter:
     def __print_package_combination(self, package_combo: List[PackageAtom]) -> None:
         with self.__buffer.scoped_indent():
             for i, package_atom in enumerate(package_combo):
-                if not self.__portage_db.does_package_exist(package_atom) or self.__portage_db.is_package_masked(
-                        package_atom):
-                    self.__print_non_installable_package(package_atom)
-                    continue
-
-                # Get the most relevant CPV for the atom
-                if self.__portage_db.is_package_installed(package_atom):
-                    package_cpv = self.__portage_db.get_best_installed_cpv(package_atom)
-                else:
-                    package_cpv = self.__portage_db.get_best_visible_cpv(package_atom)
-
                 self.__buffer.indented_push("")
-                self.__print_colored_package_atom(package_atom)
-
-                if package_atom.required_enabled_use_flags or package_atom.required_disabled_use_flags:
-                    self.__buffer.push('[')
-                if package_atom.required_enabled_use_flags:
-                    self.__print_use_flags_to_enable_list(package_cpv, package_atom.required_enabled_use_flags)
-                    if package_atom.required_disabled_use_flags:
-                        self.__buffer.push(', ')
-                if package_atom.required_disabled_use_flags:
-                    self.__print_use_flags_to_disable_list(package_cpv, package_atom.required_disabled_use_flags)
-                if package_atom.required_enabled_use_flags or package_atom.required_disabled_use_flags:
-                    self.__buffer.push(']')
+                self.__print_package_atom(package_atom)
 
                 if i != len(package_combo) - 1:
                     self.__buffer.push(Format.BOLD(" and "))
@@ -175,6 +174,12 @@ class OptFeaturesPrinter:
     def __print_non_installable_package(self, package_atom: PackageAtom) -> None:
         use_flags = ','.join(package_atom.required_enabled_use_flags)
         use_flags += ','.join(package_atom.required_disabled_use_flags)
-        self.__buffer.indented_push(f"{package_atom.text}")
+        self.__buffer.push(f"{package_atom.text}")
         if use_flags:
             self.__buffer.push(f"[{use_flags}]")
+
+    def __get_most_relevant_cpv(self, package_atom: PackageAtom) -> PackageCPV:
+        if self.__portage_db.is_package_installed(package_atom):
+            return self.__portage_db.get_best_installed_cpv(package_atom)
+        else:
+            return self.__portage_db.get_best_visible_cpv(package_atom)
