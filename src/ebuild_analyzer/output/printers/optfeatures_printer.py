@@ -64,7 +64,8 @@ class OptFeaturesPrinter:
                         self.__buffer.indented_push(Format.BOLD(" or\n"))
                         self.__buffer.pop_indent()
 
-    def __print_optfeature_visibility_condition(self, package_cpv: PackageCPV, visibility_condition: PathCondition) -> None:
+    def __print_optfeature_visibility_condition(self, package_cpv: PackageCPV,
+                                                visibility_condition: PathCondition) -> None:
         if visibility_condition.installed_packages:
             self.__buffer.indented_push("The following packages are installed: [")
             self.__print_packages_list(visibility_condition.installed_packages)
@@ -122,17 +123,16 @@ class OptFeaturesPrinter:
     def __print_package_combination(self, package_combo: List[PackageAtom]) -> None:
         with self.__buffer.scoped_indent():
             for i, package_atom in enumerate(package_combo):
-                if not self.__portage_db.does_package_exist(package_atom):
-                    self.__print_non_existent_package_atom(package_atom)
+                if not self.__portage_db.does_package_exist(package_atom) or self.__portage_db.is_package_masked(
+                        package_atom):
+                    self.__print_non_installable_package(package_atom)
                     continue
 
                 # Get the most relevant CPV for the atom
-                if self.__portage_db.is_package_masked(package_atom):
-                    package_cpv = self.__portage_db.get_best_cpv(package_atom)
-                elif not self.__portage_db.is_package_installed(package_atom):
-                    package_cpv = self.__portage_db.get_best_visible_cpv(package_atom)
-                else:
+                if self.__portage_db.is_package_installed(package_atom):
                     package_cpv = self.__portage_db.get_best_installed_cpv(package_atom)
+                else:
+                    package_cpv = self.__portage_db.get_best_visible_cpv(package_atom)
 
                 self.__buffer.indented_push("")
                 self.__print_colored_package_atom(package_atom)
@@ -172,7 +172,7 @@ class OptFeaturesPrinter:
         else:
             self.__buffer.push(uninstalled_color(package_atom.text))
 
-    def __print_non_existent_package_atom(self, package_atom: PackageAtom) -> None:
+    def __print_non_installable_package(self, package_atom: PackageAtom) -> None:
         use_flags = ','.join(package_atom.required_enabled_use_flags)
         use_flags += ','.join(package_atom.required_disabled_use_flags)
         self.__buffer.indented_push(f"{package_atom.text}")
