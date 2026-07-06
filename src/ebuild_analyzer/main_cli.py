@@ -57,7 +57,7 @@ def main():
     if args.all:
         package_cpvs = portage_db.get_all_installed_packages()
     else:
-        package_cpvs = [portage_db.get_best_installed_cpv(package_atom_parser.parse(package))]
+        package_cpvs = [portage_db.get_best_visible_cpv(package_atom_parser.parse(package))]
 
     try:
         if command == "optfeatures":
