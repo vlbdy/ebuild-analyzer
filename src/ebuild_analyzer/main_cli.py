@@ -54,18 +54,19 @@ def main():
     portage_db = PortageDatabase()
     package_atom_parser = PackageAtomParser()
 
+    if args.all:
+        package_cpvs = portage_db.get_all_installed_packages()
+    else:
+        package_cpvs = [portage_db.get_best_installed_cpv(package_atom_parser.parse(package))]
+
     try:
         if command == "optfeatures":
             show_ad_conditions = args.show_ad_conditions
-            if args.all:
-                for package in portage_db.get_all_installed_packages():
-                    print_optfeatures_for_package(portage_db, package, show_ad_conditions)
-            else:
-                package_cpv = portage_db.get_best_installed_cpv(package_atom_parser.parse(package))
+            for package_cpv in package_cpvs:
                 print_optfeatures_for_package(portage_db, package_cpv, show_ad_conditions)
         elif command == "dump-ast":
-            package_cpv = portage_db.get_best_installed_cpv(package_atom_parser.parse(package))
-            dump_ast_for_package(portage_db, package_cpv)
+            for package_cpv in package_cpvs:
+                dump_ast_for_package(portage_db, package_cpv)
     except PackageNotFoundException as e:
         print(Color.RED(str(e)))
     except InvalidAtom as e:
