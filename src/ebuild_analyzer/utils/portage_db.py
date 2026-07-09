@@ -1,8 +1,8 @@
 from typing import List, Set
 
 import portage
-from portage.dbapi import dbapi
 
+from ebuild_analyzer.ebuild.ebuild import Ebuild
 from ebuild_analyzer.package_atoms.package_atom import PackageAtom
 from ebuild_analyzer.package_atoms.package_cpv import PackageCPV
 
@@ -44,8 +44,8 @@ class PortageDatabase:
     def get_all_installed_packages(self) -> List[PackageCPV]:
         return [PackageCPV.from_string(cpv) for cpv in self.__vardb.cpv_all()]
 
-    def get_ebuild_path_for_package(self, package_cpv: PackageCPV) -> str:
-        return self.__get_db(package_cpv.text).findname(package_cpv.text)
+    def get_ebuild(self, package_cpv: PackageCPV) -> Ebuild:
+        return Ebuild(package_cpv, self.__get_db(package_cpv.text).findname(package_cpv.text))
 
     def is_package_installed(self, package_atom: PackageAtom) -> bool:
         return bool(self.__vardb.match(package_atom.text))

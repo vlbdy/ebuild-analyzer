@@ -7,31 +7,35 @@ from ebuild_analyzer.ast.bash_parser import BashParser
 from ebuild_analyzer.ast.enums.command import Command
 from ebuild_analyzer.ast.enums.node_types import NodeType
 from ebuild_analyzer.debug import dump_ast
+from ebuild_analyzer.ebuild.ebuild_preprocessor import EbuildPreprocessor
+from ebuild_analyzer.ebuild.ebuild_variables_resolver import EbuildVariablesResolver
 from ebuild_analyzer.optfeatures.optfeatures_extractor import OptFeaturesExtractor
 from ebuild_analyzer.output.ansi import Format, Color
 from ebuild_analyzer.output.printers.optfeatures_printer import OptFeaturesPrinter
 from ebuild_analyzer.package_atoms.package_atom_parser import PackageAtomParser
 from ebuild_analyzer.package_atoms.package_cpv import PackageCPV
-from ebuild_analyzer.utils.ebuild import Ebuild
 from ebuild_analyzer.utils.portage_db import PortageDatabase, PackageNotFoundException
 
 args = arguments_parser.create().parse_args()
 
 
-def dump_ast_for_package(portage_db: PortageDatabase, package_cpv: PackageCPV) -> None:
-    ebuild_path = portage_db.get_ebuild_path_for_package(package_cpv)
-    ebuild = Ebuild(package_cpv, portage_db, ebuild_path)
-    ebuild_ast = BashParser().parse(ebuild.get_normalized_contents())
-    dump_ast(ebuild_ast.get_tree().root_node, ebuild.get_normalized_contents())
+def dump_ast_for_package(portage_db: PortageDatabase, ebuild_preprocessor: EbuildPreprocessor,
+                         package_cpv: PackageCPV) -> None:
+    ebuild = portage_db.get_ebuild(package_cpv)
+    preprocessed_ebuild_contents = ebuild_preprocessor.preprocess(ebuild).contents
+
+    ebuild_ast = BashParser().parse(preprocessed_ebuild_contents)
+    dump_ast(ebuild_ast.get_tree().root_node, preprocessed_ebuild_contents)
 
 
-def print_optfeatures_for_package(portage_db: PortageDatabase, package_cpv: PackageCPV, show_ad_conditions: bool) -> None:
-    ebuild_path = portage_db.get_ebuild_path_for_package(package_cpv)
+def print_optfeatures_for_package(portage_db: PortageDatabase, ebuild_preprocessor: EbuildPreprocessor,
+                                  package_cpv: PackageCPV, show_ad_conditions: bool) -> None:
+    ebuild = portage_db.get_ebuild(package_cpv)
     if args.verbose:
-        print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild_path))
+        print(Format.BOLD("Found ebuild at: ") + Color.GREEN(ebuild.path))
 
-    ebuild = Ebuild(package_cpv, portage_db, ebuild_path)
-    ebuild_ast = BashParser().parse(ebuild.get_normalized_contents())
+    preprocessed_ebuild_contents = ebuild_preprocessor.preprocess(ebuild).contents
+    ebuild_ast = BashParser().parse(preprocessed_ebuild_contents)
 
     optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.COMMAND, Command.OPTFEATURE)
     optfeatures = OptFeaturesExtractor().extract(optfeature_ast_nodes)
@@ -53,6 +57,7 @@ def main():
 
     portage_db = PortageDatabase()
     package_atom_parser = PackageAtomParser()
+    ebuild_preprocessor = EbuildPreprocessor(EbuildVariablesResolver(portage_db))
 
     if args.all:
         package_cpvs = portage_db.get_all_installed_packages()
@@ -63,10 +68,10 @@ def main():
         if command == "optfeatures":
             show_ad_conditions = args.show_ad_conditions
             for package_cpv in package_cpvs:
-                print_optfeatures_for_package(portage_db, package_cpv, show_ad_conditions)
+                print_optfeatures_for_package(portage_db, ebuild_preprocessor, package_cpv, show_ad_conditions)
         elif command == "dump-ast":
             for package_cpv in package_cpvs:
-                dump_ast_for_package(portage_db, package_cpv)
+                dump_ast_for_package(portage_db, ebuild_preprocessor, package_cpv)
     except PackageNotFoundException as e:
         print(Color.RED(str(e)))
     except InvalidAtom as e:
