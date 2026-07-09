@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from portage.exception import InvalidAtom
+from portage.exception import InvalidAtom, AmbiguousPackageName
 
 from ebuild_analyzer.arguments.config import Config
 from ebuild_analyzer.commands.handlers.command_handler import CommandHandler
@@ -31,9 +31,11 @@ class CommandDispatcher:
         try:
             self.__dispatch_command()
         except PackageNotFoundException as e:
-            print(Color.RED(str(e)))
+            print(Color.RED("error: ") + str(e))
         except InvalidAtom as e:
-            print(Color.RED(f"Invalid package atom: '{e}'"))
+            print(Color.RED("error: ") + f"Invalid package atom: '{e}'")
+        except AmbiguousPackageName as e:
+            print(Color.RED("error: ") + f"Ambiguous package name '{self.__config.package}'. Candidates are {e}.")
 
     def __dispatch_command(self) -> None:
         cpvs = self.__get_package_cpvs()
