@@ -1,7 +1,9 @@
 from argparse import ArgumentParser
 
+from ebuild_analyzer.arguments.config import Config
 
-def create() -> ArgumentParser:
+
+def parse() -> Config:
     parser = ArgumentParser(prog="ebuild-analyzer")
 
     parser.add_argument(
@@ -16,6 +18,7 @@ def create() -> ArgumentParser:
         help="Verbose messages",
         default=False,
     )
+    parser.set_defaults(show_ad_conditions=False)
 
     subparsers = parser.add_subparsers(
         dest="command",
@@ -45,6 +48,13 @@ def create() -> ArgumentParser:
         "dump-ast",
         help="Dump tree sitter AST for the ebuild (for debugging)"
     )
-    dump_ast_parser.add_argument("package")
+    dump_ast_parser.add_argument("package", nargs="?")
 
-    return parser
+    args = parser.parse_args()
+    return Config(
+        command=args.command,
+        package=args.package,
+        all=args.all,
+        verbose=args.verbose,
+        show_ad_conditions=args.show_ad_conditions,
+    )
