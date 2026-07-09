@@ -9,8 +9,14 @@ class OutputBuffer:
         self.__indentation_enabled = True
         self.__buffer: str = ""
 
+    def reset(self) -> None:
+        self.__indentation = 0
+        self.__indentation_enabled = True
+        self.__buffer: str = ""
+
     def print(self) -> None:
         print(self.__buffer)
+        self.__buffer = ""
 
     def push(self, data: str) -> None:
         self.__buffer += data

@@ -19,6 +19,7 @@ class OptFeaturesPrinter:
         self.__optfeature_availability_checker = OptFeatureAvailabilityChecker(portage_db)
 
     def print(self, package_cpv: PackageCPV, optfeatures: List[OptFeature]) -> None:
+        self.__buffer.reset()
         self.__buffer.push(Color.LIGHT_PURPLE(Format.BOLD(f"Optional features for package {package_cpv.text}:\n")))
         self.__buffer.push_indent()
 
