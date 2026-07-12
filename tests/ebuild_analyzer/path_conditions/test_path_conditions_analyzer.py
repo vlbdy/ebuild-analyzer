@@ -41,6 +41,15 @@ def test_no_conditions(bash_parser: BashParser, path_conditions_analyzer: PathCo
 
     (b"use !a && optfeature", [PathCondition(disabled_use_flags=['a'])]),
     (b"! use a && optfeature", [PathCondition(disabled_use_flags=['a'])]),
+
+    (b"use a && grep something /somewhere && optfeature",
+     [PathCondition(enabled_use_flags=['a'], successful_commands=['grep something /somewhere'])]),
+    (b"use a && ! grep something /somewhere && optfeature",
+     [PathCondition(enabled_use_flags=['a'], failed_commands=['grep something /somewhere'])]),
+    (b"use a || ! grep something /somewhere && optfeature",
+     [PathCondition(enabled_use_flags=['a']), PathCondition(failed_commands=['grep something /somewhere'])]),
+    (b"grep something /somewhere || optfeature",
+     [PathCondition(failed_commands=['grep something /somewhere'])]),
 ])
 def test_short_circuit_conditions(bash: bytes, expected_path_conditions: List[PathCondition], bash_parser: BashParser,
                                   path_conditions_analyzer: PathConditionsAnalyzer):
@@ -51,6 +60,10 @@ def test_short_circuit_conditions(bash: bytes, expected_path_conditions: List[Pa
 @pytest.mark.parametrize("bash, expected_path_conditions", [
     (b"if use a; then optfeature; fi", [PathCondition(enabled_use_flags=['a'])]),
     (b"if has_version pkg; then optfeature; fi", [PathCondition(installed_packages=[PackageAtom('pkg')])]),
+
+    (b"if some_command; then optfeature; fi", [PathCondition(successful_commands=['some_command'])]),
+    (b"if ! some_command && some_command2; then optfeature; fi",
+     [PathCondition(failed_commands=['some_command'], successful_commands=['some_command2'])]),
 
     (b"if use a && use b; then optfeature; fi", [PathCondition(enabled_use_flags=['a', 'b'])]),
     (b"if use a || use b; then optfeature; fi",
@@ -87,7 +100,10 @@ def test_if_statement_conditions(bash: bytes, expected_path_conditions: List[Pat
     (b"if use a || use b; then if use c && use d; then optfeature; fi; fi",
      [PathCondition(enabled_use_flags=['a', 'c', 'd']), PathCondition(enabled_use_flags=['b', 'c', 'd'])]),
     (b"if use a && use b; then if use c && use d; then optfeature; fi; fi",
-     [PathCondition(enabled_use_flags=['a', 'b', 'c', 'd'])])
+     [PathCondition(enabled_use_flags=['a', 'b', 'c', 'd'])]),
+
+    (b"if command a; then if command b && ! command c; then optfeature; fi; fi",
+     [PathCondition(successful_commands=['command a', 'command b'], failed_commands=['command c'])])
 ])
 def test_nested_if_statement_conditions(bash: bytes, expected_path_conditions: List[PathCondition],
                                         bash_parser: BashParser, path_conditions_analyzer: PathConditionsAnalyzer):
@@ -102,6 +118,9 @@ def test_nested_if_statement_conditions(bash: bytes, expected_path_conditions: L
     (b"if use a; then use b && use c && optfeature; fi", [PathCondition(enabled_use_flags=['a', 'b', 'c'])]),
     (b"if use a; then use b || use c && optfeature; fi",
      [PathCondition(enabled_use_flags=['a', 'b']), PathCondition(enabled_use_flags=['a', 'c'])]),
+
+    (b"if some_command; then use b && use c && optfeature; fi",
+     [PathCondition(successful_commands=['some_command'], enabled_use_flags=['b', 'c'])]),
 ])
 def test_if_conditions_mixed_with_short_circuit_conditions(bash: bytes, expected_path_conditions: List[PathCondition],
                                                            bash_parser: BashParser,
