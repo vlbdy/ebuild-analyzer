@@ -12,9 +12,11 @@ from ebuild_analyzer.path_conditions.path_condition import PathCondition
 class PathConditionsAnalyzer:
     def __init__(self):
         self.__package_atom_parser = PackageAtomParser()
+        self.__original_node = None  # Used during analysis to avoid using the original node as a path condition
 
     def analyze(self, node: Node) -> List[PathCondition]:
         path_conditions: List[PathCondition] = []
+        self.__original_node = node
 
         current_node = node.parent
         while current_node.type != NodeType.PROGRAM:
@@ -25,7 +27,9 @@ class PathConditionsAnalyzer:
         return path_conditions
 
     def __analyze_node_according_to_type(self, node: Node) -> List[PathCondition]:
-        if ast_node_utils.is_command_node(node):
+        if node == self.__original_node:
+            return []
+        elif ast_node_utils.is_command_node(node):
             return [self.__analyze_simple_node(node)]
         elif ast_node_utils.is_compound_node(node):
             return self.__analyze_compound_node(node)
@@ -83,6 +87,8 @@ class PathConditionsAnalyzer:
                 path_conditions.enabled_use_flags.append(use_flag)
         elif command == Command.HAS_VERSION:
             path_conditions.installed_packages.append(self.__package_atom_parser.parse(arguments[0]))
+        else:
+            path_conditions.successful_commands.append(command_node.text.decode())
 
         return path_conditions
 

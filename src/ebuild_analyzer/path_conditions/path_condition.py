@@ -10,12 +10,16 @@ class PathCondition:
     disabled_use_flags: List[str] = field(default_factory=list)
     installed_packages: List[PackageAtom] = field(default_factory=list)
     uninstalled_packages: List[PackageAtom] = field(default_factory=list)
+    successful_commands: List[str] = field(default_factory=list)
+    failed_commands: List[str] = field(default_factory=list)
 
     def __iadd__(self, other: PathCondition) -> PathCondition:
         self.enabled_use_flags += other.enabled_use_flags
         self.disabled_use_flags += other.disabled_use_flags
         self.installed_packages += other.installed_packages
         self.uninstalled_packages += other.uninstalled_packages
+        self.successful_commands += other.successful_commands
+        self.failed_commands += other.failed_commands
         return self
 
     def __add__(self, other: PathCondition) -> PathCondition:
@@ -24,17 +28,22 @@ class PathCondition:
             disabled_use_flags=self.disabled_use_flags + other.disabled_use_flags,
             installed_packages=self.installed_packages + other.installed_packages,
             uninstalled_packages=self.uninstalled_packages + other.uninstalled_packages,
+            successful_commands=self.successful_commands + other.successful_commands,
+            failed_commands=self.failed_commands + other.failed_commands,
         )
 
     def __bool__(self) -> bool:
         return bool(
-            self.enabled_use_flags or self.disabled_use_flags or self.installed_packages or self.uninstalled_packages)
+            self.enabled_use_flags or self.disabled_use_flags or self.installed_packages or self.uninstalled_packages or
+            self.successful_commands or self.failed_commands)
 
     def __eq__(self, other: PathCondition) -> bool:
         return (set(self.enabled_use_flags) == set(other.enabled_use_flags)
                 and set(self.disabled_use_flags) == set(other.disabled_use_flags)
                 and set(self.installed_packages) == set(other.installed_packages)
-                and set(self.uninstalled_packages) == set(other.uninstalled_packages))
+                and set(self.uninstalled_packages) == set(other.uninstalled_packages)
+                and set(self.successful_commands) == set(other.successful_commands)
+                and set(self.failed_commands) == set(other.failed_commands))
 
     # Commands can be negated in bash with '!', this is a helper method
     def negated_add(self, other: PathCondition) -> PathCondition:
@@ -42,6 +51,8 @@ class PathCondition:
         self.disabled_use_flags += other.enabled_use_flags
         self.installed_packages += other.uninstalled_packages
         self.uninstalled_packages += other.installed_packages
+        self.successful_commands += other.failed_commands
+        self.failed_commands += other.successful_commands
         return self
 
     # De Morgan negation
@@ -62,4 +73,8 @@ class PathCondition:
             negated_conditions.append(PathCondition(disabled_use_flags=[enabled_use_flag]))
         for disabled_use_flag in self.disabled_use_flags:
             negated_conditions.append(PathCondition(enabled_use_flags=[disabled_use_flag]))
+        for successful_command in self.successful_commands:
+            negated_conditions.append(PathCondition(failed_commands=[successful_command]))
+        for failed_command in self.failed_commands:
+            negated_conditions.append(PathCondition(successful_commands=[failed_command]))
         return negated_conditions

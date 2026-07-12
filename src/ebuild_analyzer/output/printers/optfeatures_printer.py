@@ -88,6 +88,16 @@ class OptFeaturesPrinter:
             self.__print_use_flags_to_disable_list(package_cpv, visibility_condition.disabled_use_flags)
             self.__buffer.push("]\n")
 
+        if visibility_condition.successful_commands:
+            self.__buffer.indented_push("The following commands succeed:\n")
+            with self.__buffer.scoped_indent():
+                self.__print_commands(visibility_condition.successful_commands)
+
+        if visibility_condition.failed_commands:
+            self.__buffer.indented_push("The following commands fail:\n")
+            with self.__buffer.scoped_indent():
+                self.__print_commands(visibility_condition.failed_commands)
+
     def __print_packages_required_to_enable_optfeature(self, package_combinations: List[List[PackageAtom]]) -> None:
         with self.__buffer.scoped_indent():
             self.__buffer.indented_push("Required packages to enable the feature:\n")
@@ -178,6 +188,10 @@ class OptFeaturesPrinter:
         self.__buffer.push(f"{package_atom.text}")
         if use_flags:
             self.__buffer.push(f"[{use_flags}]")
+
+    def __print_commands(self, commands: List[str]) -> None:
+        for command in commands:
+            self.__buffer.indented_push(f"{command}\n")
 
     def __get_most_relevant_cpv(self, package_atom: PackageAtom) -> PackageCPV:
         if self.__portage_db.is_package_installed(package_atom):
