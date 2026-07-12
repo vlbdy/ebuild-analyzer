@@ -18,6 +18,14 @@ def parse() -> Config:
         help="Verbose messages",
         default=False,
     )
+    parser.add_argument(
+        "--run-unknown-commands", "--ruc",
+        action="store_true",
+        help="Run unknown commands to test whether they succeed or not. Some path conditions require commands to "
+             "succeed or fail, enabling this option will let the analyzer try to execute the command to test whether "
+             "the path condition is met. Use with caution!",
+        default=False,
+    )
     parser.set_defaults(show_ad_conditions=False)
 
     subparsers = parser.add_subparsers(
@@ -57,4 +65,5 @@ def parse() -> Config:
         all=args.all,
         verbose=args.verbose,
         show_ad_conditions=args.show_ad_conditions,
+        run_unknown_commands=args.run_unknown_commands,
     )

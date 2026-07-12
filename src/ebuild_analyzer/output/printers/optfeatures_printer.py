@@ -1,3 +1,4 @@
+import subprocess
 from collections import defaultdict
 from typing import List
 
@@ -12,9 +13,10 @@ from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
 class OptFeaturesPrinter:
-    def __init__(self, portage_db: PortageDatabase, show_ad_conditions: bool) -> None:
+    def __init__(self, portage_db: PortageDatabase, show_ad_conditions: bool, run_unknown_commands: bool) -> None:
         self.__portage_db = portage_db
         self.__show_ad_conditions = show_ad_conditions
+        self.__run_unknown_commands = run_unknown_commands
         self.__buffer = OutputBuffer()
         self.__optfeature_availability_checker = OptFeatureAvailabilityChecker(portage_db)
 
@@ -191,7 +193,18 @@ class OptFeaturesPrinter:
 
     def __print_commands(self, commands: List[str]) -> None:
         for command in commands:
-            self.__buffer.indented_push(f"{command}\n")
+            if self.__run_unknown_commands:
+                self.__print_colored_command(command)
+            else:
+                self.__buffer.indented_push(command)
+            self.__buffer.push('\n')
+
+    def __print_colored_command(self, command: str) -> None:
+        result = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if result.returncode == 0:
+            self.__buffer.indented_push(Color.GREEN(command))
+        else:
+            self.__buffer.indented_push(Color.RED(command))
 
     def __get_most_relevant_cpv(self, package_atom: PackageAtom) -> PackageCPV:
         if self.__portage_db.is_package_installed(package_atom):

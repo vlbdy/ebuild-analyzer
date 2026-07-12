@@ -17,7 +17,8 @@ class OptFeaturesCommandHandler(CommandHandler):
 
         self.__bash_parser = BashParser()
         self.__optfeatures_extractor = OptFeaturesExtractor()
-        self.__optfeatures_printer = OptFeaturesPrinter(portage_db, config.show_ad_conditions)
+        self.__optfeatures_printer = OptFeaturesPrinter(portage_db, config.show_ad_conditions,
+                                                        config.run_unknown_commands)
 
     def handle(self, package_cpv: PackageCPV, ebuild: Ebuild) -> None:
         ebuild_ast = self.__bash_parser.parse(ebuild.contents)
