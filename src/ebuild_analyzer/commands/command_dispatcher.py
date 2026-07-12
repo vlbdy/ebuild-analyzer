@@ -5,6 +5,7 @@ from portage.exception import InvalidAtom, AmbiguousPackageName
 from ebuild_analyzer.arguments.config import Config
 from ebuild_analyzer.commands.handlers.command_handler import CommandHandler
 from ebuild_analyzer.commands.handlers.dump_ast_command_handler import DumpAstCommandHandler
+from ebuild_analyzer.commands.handlers.kernel_config_command_handler import KernelConfigCommandHandler
 from ebuild_analyzer.commands.handlers.optfeatures_command_handler import OptFeaturesCommandHandler
 from ebuild_analyzer.ebuild.ebuild import Ebuild
 from ebuild_analyzer.ebuild.ebuild_preprocessor import EbuildPreprocessor
@@ -24,6 +25,7 @@ class CommandDispatcher:
 
         self.__command_handlers: Dict[str, CommandHandler] = {
             "optfeatures": OptFeaturesCommandHandler(config, self.__portage_db),
+            "kernel-config": KernelConfigCommandHandler(),
             "dump-ast": DumpAstCommandHandler(),
         }
 

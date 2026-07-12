@@ -13,3 +13,4 @@ class NodeType(StrEnum):
     PROGRAM = "program"
     OR = "||"
     AND = "&&"
+    VARIABLE_ASSIGNMENT = "variable_assignment"
