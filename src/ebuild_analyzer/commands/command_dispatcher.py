@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from portage.exception import InvalidAtom, AmbiguousPackageName
 
@@ -30,18 +30,19 @@ class CommandDispatcher:
     def dispatch(self) -> None:
         try:
             self.__dispatch_command()
-        except PackageNotFoundException as e:
-            print(Color.RED("error: ") + str(e))
-        except InvalidAtom as e:
-            print(Color.RED("error: ") + f"Invalid package atom: '{e}'")
-        except AmbiguousPackageName as e:
-            print(Color.RED("error: ") + f"Ambiguous package name '{self.__config.package}'. Candidates are {e}.")
+        except (PackageNotFoundException, InvalidAtom, AmbiguousPackageName) as e:
+            self.__report_exception(e)
 
     def __dispatch_command(self) -> None:
-        cpvs = self.__get_package_cpvs()
-        for cpv in cpvs:
+        for cpv in self.__get_package_cpvs():
+            self.__process_cpv(cpv)
+
+    def __process_cpv(self, cpv: PackageCPV) -> None:
+        try:
             ebuild = self.__get_ebuild(cpv)
             self.__command_handlers[self.__config.command].handle(cpv, ebuild)
+        except (PackageNotFoundException, InvalidAtom, AmbiguousPackageName) as e:
+            self.__report_exception(e, cpv)
 
     def __get_ebuild(self, package_cpv: PackageCPV) -> Ebuild:
         ebuild = self.__portage_db.get_ebuild(package_cpv)
@@ -55,3 +56,15 @@ class CommandDispatcher:
             return self.__portage_db.get_all_installed_packages()
         else:
             return [self.__portage_db.get_best_visible_cpv(self.__package_atom_parser.parse(self.__config.package))]
+
+    def __report_exception(self, exception: Exception, cpv: Optional[PackageCPV] = None) -> None:
+        if cpv is not None:
+            print(Color.RED(f"Failed to process the following package: {cpv.text}"))
+
+        match exception:
+            case PackageNotFoundException() as e:
+                print(Color.RED("error: ") + str(e))
+            case InvalidAtom() as e:
+                print(Color.RED("error: ") + f"Invalid package atom: '{e}'")
+            case AmbiguousPackageName() as e:
+                print(Color.RED("error: ") + f"Ambiguous package name '{self.__config.package}'. Candidates are {e}.")
