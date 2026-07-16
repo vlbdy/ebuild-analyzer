@@ -12,7 +12,9 @@ from ebuild_analyzer.path_conditions.path_condition import PathCondition
 class PathConditionsAnalyzer:
     def __init__(self):
         self.__package_atom_parser = PackageAtomParser()
+
         self.__original_node = None  # Used during analysis to avoid using the original node as a path condition
+        self.__is_in_else_clause = False  # Also used during analysis internally
 
     def analyze(self, node: Node) -> List[PathCondition]:
         path_conditions: List[PathCondition] = []
@@ -29,10 +31,21 @@ class PathConditionsAnalyzer:
     def __analyze_node_according_to_type(self, node: Node) -> List[PathCondition]:
         if node == self.__original_node:
             return []
-        elif ast_node_utils.is_command_node(node):
+
+        if node.type == NodeType.ELSE_CLAUSE:
+            self.__is_in_else_clause = True
+
+        if ast_node_utils.is_command_node(node):
             return [self.__analyze_simple_node(node)]
         elif ast_node_utils.is_compound_node(node):
-            return self.__analyze_compound_node(node)
+            conditions = self.__analyze_compound_node(node)
+
+            # Only if statements can have else clauses, so they are handled here
+            if self.__is_in_else_clause:
+                self.__is_in_else_clause = False
+                return self.__negate_path_conditions(conditions)
+            else:
+                return conditions
         else:
             return []
 

@@ -129,6 +129,23 @@ def test_if_conditions_mixed_with_short_circuit_conditions(bash: bytes, expected
     assert path_conditions_analyzer.analyze(command_node) == expected_path_conditions
 
 
+@pytest.mark.parametrize("bash, expected_path_conditions", [
+    (b"if use a; then nothing; else optfeature; fi", [PathCondition(disabled_use_flags=['a'])]),
+    (b"if use a; then nothing; else if use b; then optfeature; fi; fi",
+     [PathCondition(enabled_use_flags=['b'], disabled_use_flags=['a'])]),
+    (b"if use a && use b; then nothing; else optfeature; fi",
+     [PathCondition(disabled_use_flags=['a']), PathCondition(disabled_use_flags=['b'])]),
+    (b"if use a || use b; then nothing; else optfeature; fi",
+     [PathCondition(disabled_use_flags=['a', 'b'])]),
+    (b"if use a || use b; then nothing; else if use c; then optfeature; fi; fi",
+     [PathCondition(enabled_use_flags=['c'], disabled_use_flags=['a', 'b'])]),
+])
+def test_if_else_statements(bash: bytes, expected_path_conditions: List[PathCondition], bash_parser: BashParser,
+                            path_conditions_analyzer: PathConditionsAnalyzer):
+    command_node = __get_optfeature_command_node(bash_parser, bash)
+    assert path_conditions_analyzer.analyze(command_node) == expected_path_conditions
+
+
 @pytest.mark.xfail(reason="Not implemented")
 @pytest.mark.parametrize("bash, expected_path_conditions", [
     (b"use a && optfeature && use b", [PathCondition(enabled_use_flags=['a'])]),

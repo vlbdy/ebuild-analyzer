@@ -14,3 +14,4 @@ class NodeType(StrEnum):
     OR = "||"
     AND = "&&"
     VARIABLE_ASSIGNMENT = "variable_assignment"
+    ELSE_CLAUSE = "else_clause"
