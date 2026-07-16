@@ -15,3 +15,4 @@ class NodeType(StrEnum):
     AND = "&&"
     VARIABLE_ASSIGNMENT = "variable_assignment"
     ELSE_CLAUSE = "else_clause"
+    ELIF_CLAUSE = "elif_clause"

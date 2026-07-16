@@ -24,6 +24,12 @@ class PathConditionsAnalyzer:
         while current_node.type != NodeType.PROGRAM:
             current_node_path_conditions = self.__analyze_node_according_to_type(current_node)
             path_conditions = self.__combine_conditions(path_conditions, current_node_path_conditions)
+
+            # We must skip the parent of an `elif_clause` because it is the first if statement. The if statement
+            # is irrelevant since we were in the elif clause therefore we skip it.
+            if current_node.type == NodeType.ELIF_CLAUSE:
+                current_node = current_node.parent
+
             current_node = current_node.parent
 
         return path_conditions
@@ -66,8 +72,8 @@ class PathConditionsAnalyzer:
         condition_nodes: List[Node] = []
         if node.type == NodeType.LIST:
             condition_nodes = node.children
-        elif node.type == NodeType.IF_STATEMENT:
-            condition_nodes = ast_node_utils.get_all_if_statement_condition_nodes(node)
+        elif node.type in (NodeType.IF_STATEMENT, NodeType.ELIF_CLAUSE):
+            condition_nodes = ast_node_utils.get_all_condition_nodes(node)
 
         path_conditions: List[PathCondition] = []
 

@@ -146,6 +146,20 @@ def test_if_else_statements(bash: bytes, expected_path_conditions: List[PathCond
     assert path_conditions_analyzer.analyze(command_node) == expected_path_conditions
 
 
+@pytest.mark.parametrize("bash, expected_path_conditions", [
+    (b"if use a; then nothing; elif use b; then optfeature; fi", [PathCondition(enabled_use_flags=['b'])]),
+    (b"if use a; then nothing; elif use b && use c; then optfeature; fi", [PathCondition(enabled_use_flags=['b', 'c'])]),
+    (b"if use a; then nothing; elif use b; then if use c; then optfeature; fi; fi",
+     [PathCondition(enabled_use_flags=['b', 'c'])]),
+    (b"if use a; then nothing; elif use b; then if use c; then nothing; elif use d; then optfeature; fi; fi",
+     [PathCondition(enabled_use_flags=['b', 'd'])]),
+])
+def test_if_elif_statements(bash: bytes, expected_path_conditions: List[PathCondition], bash_parser: BashParser,
+                            path_conditions_analyzer: PathConditionsAnalyzer):
+    command_node = __get_optfeature_command_node(bash_parser, bash)
+    assert path_conditions_analyzer.analyze(command_node) == expected_path_conditions
+
+
 @pytest.mark.xfail(reason="Not implemented")
 @pytest.mark.parametrize("bash, expected_path_conditions", [
     (b"use a && optfeature && use b", [PathCondition(enabled_use_flags=['a'])]),

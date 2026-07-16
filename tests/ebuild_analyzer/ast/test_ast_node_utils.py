@@ -58,7 +58,7 @@ def test_get_arguments_from_command_node_sanity(bash_parser: BashParser, argumen
     assert ast_node_utils.get_arguments_from_command_node(command_node) == expected_output_arguments
 
 
-def test_get_all_if_statement_condition_nodes_sanity(bash_parser: BashParser):
+def test_get_all_condition_nodes_sanity(bash_parser: BashParser):
     bash = b"""
     if a && b || c; then 
         my_command
@@ -67,7 +67,7 @@ def test_get_all_if_statement_condition_nodes_sanity(bash_parser: BashParser):
     ast = bash_parser.parse(bash)
     if_statement_node = ast_node_utils.find_closest_direct_child_node_of_type(NodeType.IF_STATEMENT, ast.get_tree().root_node)
 
-    condition_nodes = ast_node_utils.get_all_if_statement_condition_nodes(if_statement_node)
+    condition_nodes = ast_node_utils.get_all_condition_nodes(if_statement_node)
 
     # The first condition node is always an 'if' node
     assert condition_nodes[1].type == NodeType.LIST and condition_nodes[1].text == b"a && b || c"
@@ -80,7 +80,7 @@ def test_get_all_if_statement_condition_nodes_sanity(bash_parser: BashParser):
 @pytest.mark.parametrize("func", [
     ast_node_utils.get_command_name_from_command_node,
     ast_node_utils.get_arguments_from_command_node,
-    ast_node_utils.get_all_if_statement_condition_nodes,
+    ast_node_utils.get_all_condition_nodes,
 ])
 def test_raise_unexpected_node_type_exception(bash_parser: BashParser, func: Callable):
     bash = b"my_func(){}"
@@ -88,4 +88,4 @@ def test_raise_unexpected_node_type_exception(bash_parser: BashParser, func: Cal
     root_node = ast.get_tree().root_node
 
     with pytest.raises(UnexpectedNodeTypeException):
-        ast_node_utils.get_all_if_statement_condition_nodes(root_node)
+        ast_node_utils.get_all_condition_nodes(root_node)

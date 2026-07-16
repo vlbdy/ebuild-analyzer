@@ -16,13 +16,13 @@ def find_closest_direct_child_node_of_type(node_type: NodeType, node: Node) -> N
 
 def get_command_name_from_command_node(command_node: Node) -> str:
     if command_node.type != NodeType.COMMAND:
-        raise UnexpectedNodeTypeException(NodeType.COMMAND, command_node.type)
+        raise UnexpectedNodeTypeException([NodeType.COMMAND], command_node.type)
     return find_closest_direct_child_node_of_type(NodeType.COMMAND_NAME, command_node).text.decode()
 
 
 def get_arguments_from_command_node(command_node: Node) -> List[str]:
     if command_node.type != NodeType.COMMAND:
-        raise UnexpectedNodeTypeException(NodeType.COMMAND, command_node.type)
+        raise UnexpectedNodeTypeException([NodeType.COMMAND], command_node.type)
 
     arguments = []
     for child in command_node.children:
@@ -36,12 +36,12 @@ def get_arguments_from_command_node(command_node: Node) -> List[str]:
     return arguments
 
 
-def get_all_if_statement_condition_nodes(if_statement_node: Node) -> List[Node]:
-    if if_statement_node.type != NodeType.IF_STATEMENT:
-        raise UnexpectedNodeTypeException(NodeType.IF_STATEMENT, if_statement_node.type)
+def get_all_condition_nodes(conditional_node: Node) -> List[Node]:
+    if conditional_node.type not in (NodeType.IF_STATEMENT, NodeType.ELIF_CLAUSE):
+        raise UnexpectedNodeTypeException([NodeType.IF_STATEMENT, NodeType.ELIF_CLAUSE], conditional_node.type)
 
     condition_nodes: List[Node] = []
-    for child in if_statement_node.children:
+    for child in conditional_node.children:
         # End of condition nodes
         if child.type == NodeType.THEN:
             break
@@ -55,4 +55,4 @@ def is_command_node(node: Node) -> bool:
 
 
 def is_compound_node(node: Node) -> bool:
-    return node.type in (NodeType.IF_STATEMENT, NodeType.LIST)
+    return node.type in (NodeType.IF_STATEMENT, NodeType.LIST, NodeType.ELIF_CLAUSE)
