@@ -14,4 +14,6 @@ class PackageAtom:
                 and set(self.required_disabled_use_flags) == set(other.required_disabled_use_flags))
 
     def __hash__(self) -> int:
-        return hash((self.text, tuple(self.required_enabled_use_flags), tuple(self.required_disabled_use_flags)))
+        return hash((
+            self.text, frozenset(self.required_enabled_use_flags), frozenset(self.required_disabled_use_flags)
+        ))
