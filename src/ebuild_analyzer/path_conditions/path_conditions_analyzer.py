@@ -101,13 +101,13 @@ class PathConditionsAnalyzer:
         if command == Command.USE:
             use_flag = arguments[0]
             if use_flag.startswith('!'):
-                path_conditions.disabled_use_flags.append(use_flag[1:])
+                path_conditions.disabled_use_flags.add(use_flag[1:])
             else:
-                path_conditions.enabled_use_flags.append(use_flag)
+                path_conditions.enabled_use_flags.add(use_flag)
         elif command == Command.HAS_VERSION:
-            path_conditions.installed_packages.append(self.__package_atom_parser.parse(arguments[0]))
+            path_conditions.installed_packages.add(self.__package_atom_parser.parse(arguments[0]))
         else:
-            path_conditions.successful_commands.append(command_node.text.decode())
+            path_conditions.successful_commands.add(command_node.text.decode())
 
         return path_conditions
 
