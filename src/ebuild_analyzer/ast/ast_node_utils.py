@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from tree_sitter import Node
 
@@ -48,6 +48,17 @@ def get_all_condition_nodes(conditional_node: Node) -> List[Node]:
         condition_nodes.append(child)
 
     return condition_nodes
+
+
+def get_value_of_variable_assignment_node(variable_assignment_node: Node) -> Any:
+    if variable_assignment_node.type != NodeType.VARIABLE_ASSIGNMENT:
+        raise UnexpectedNodeTypeException([NodeType.VARIABLE_ASSIGNMENT], variable_assignment_node.type)
+
+    # Most variable assignments are of the form
+    # <variable> <operator> <value>
+    #  index 0    index 1   index 2
+    value_node = variable_assignment_node.children[2]
+    return value_node.text.decode()[1:-1]  # Remove the ' or " from the ends of the string
 
 
 def is_command_node(node: Node) -> bool:
