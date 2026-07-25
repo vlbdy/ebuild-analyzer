@@ -58,7 +58,7 @@ class PathConditionsAnalyzer:
             # Only if statements can have else clauses, so they are handled here
             if self.__is_in_else_clause:
                 self.__is_in_else_clause = False
-                return self.__negate_path_conditions(conditions)
+                return self.__negate_and_combine_path_conditions(conditions)
             else:
                 return conditions
         else:
@@ -96,7 +96,7 @@ class PathConditionsAnalyzer:
                 #   has_version ... || optfeature ...
                 # In this case, the optfeature is advertised if the condition is *not* met, therefore we must negate it.
                 if self.__is_optfeature_command_node(condition_node):
-                    path_conditions = self.__negate_path_conditions(path_conditions)
+                    path_conditions = self.__negate_and_combine_path_conditions(path_conditions)
             last_node_type = condition_node.type
 
         return path_conditions
@@ -133,7 +133,7 @@ class PathConditionsAnalyzer:
         command = ast_node_utils.get_command_name_from_command_node(command_node)
         return command.startswith(Command.OPTFEATURE) and not command.startswith(Command.OPTFEATURE_HEADER)
 
-    def __negate_path_conditions(self, conditions: List[PathCondition]) -> List[PathCondition]:
+    def __negate_and_combine_path_conditions(self, conditions: List[PathCondition]) -> List[PathCondition]:
         new_conditions: List[PathCondition] = []
         for condition in conditions:
             new_conditions = self.__combine_conditions(condition.negate(), new_conditions)
