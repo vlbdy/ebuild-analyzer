@@ -5,6 +5,8 @@ from tree_sitter import Node
 from ebuild_analyzer.ast import ast_node_utils
 from ebuild_analyzer.ast.enums.command import Command
 from ebuild_analyzer.ast.enums.node_types import NodeType
+from ebuild_analyzer.kernel_version.kernel_version import KernelVersion
+from ebuild_analyzer.kernel_version.kernel_version_range import KernelVersionRange
 from ebuild_analyzer.package_atoms.package_atom_parser import PackageAtomParser
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
 
@@ -42,7 +44,7 @@ class PathConditionsAnalyzer:
             self.__is_in_else_clause = True
 
         if ast_node_utils.is_command_node(node):
-            return [self.__analyze_simple_node(node)]
+            return self.__analyze_simple_node(node)
         elif ast_node_utils.is_compound_node(node):
             conditions = self.__analyze_compound_node(node)
 
@@ -55,18 +57,17 @@ class PathConditionsAnalyzer:
         else:
             return []
 
-    def __analyze_simple_node(self, node: Node) -> PathCondition:
-        path_condition = PathCondition()
+    def __analyze_simple_node(self, node: Node) -> List[PathCondition]:
+        path_conditions: List[PathCondition] = []
 
         if node.type == NodeType.COMMAND:
-            path_condition += self.__analyze_command_node(node)
-
+            path_conditions.append(self.__analyze_command_node(node))
         elif node.type == NodeType.NEGATED_COMMAND:
             command_node = ast_node_utils.find_closest_direct_child_node_of_type(NodeType.COMMAND, node)
-            negated_path_conditions = self.__analyze_command_node(command_node)
-            path_condition.negated_add(negated_path_conditions)
+            path_condition = self.__analyze_command_node(command_node)
+            path_conditions.extend(PathCondition().and_not(path_condition))
 
-        return path_condition
+        return path_conditions
 
     def __analyze_compound_node(self, node: Node) -> List[PathCondition]:
         condition_nodes: List[Node] = []
@@ -106,6 +107,29 @@ class PathConditionsAnalyzer:
                 path_conditions.enabled_use_flags.add(use_flag)
         elif command == Command.HAS_VERSION:
             path_conditions.installed_packages.add(self.__package_atom_parser.parse(arguments[0]))
+        elif command == Command.KERNEL_IS:
+            # If the first argument is a digit, it means that no operator was specified
+            if arguments[0].isdigit():
+                operator = "eq"  # This is the default if no operator was specified
+                kernel_version_parts = arguments[0:]
+            else:
+                operator = arguments[0]
+                kernel_version_parts = arguments[1:]
+
+            # This line pads the kernel version parts with `None` if there aren't at least 3 parts
+            major, minor, patch = (kernel_version_parts + [0] * 3)[:3]
+            kernel_version = KernelVersion(major, minor, patch)
+            match operator:
+                case "-lt" | "lt":
+                    path_conditions.kernel_version_range = KernelVersionRange.less_than(kernel_version)
+                case "-gt" | "gt":
+                    path_conditions.kernel_version_range = KernelVersionRange.greater_than(kernel_version)
+                case "-le" | "le":
+                    path_conditions.kernel_version_range = KernelVersionRange.at_most(kernel_version)
+                case "-ge" | "ge":
+                    path_conditions.kernel_version_range = KernelVersionRange.at_least(kernel_version)
+                case "-eq" | "eq":
+                    path_conditions.kernel_version_range = KernelVersionRange.exactly(kernel_version)
         else:
             path_conditions.successful_commands.add(command_node.text.decode())
 

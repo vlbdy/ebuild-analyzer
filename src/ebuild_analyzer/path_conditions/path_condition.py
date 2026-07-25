@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from typing import List, Set
+from typing import List, Set, Optional
 
+from ebuild_analyzer.kernel_version.kernel_version_range import KernelVersionRange
 from ebuild_analyzer.package_atoms.package_atom import PackageAtom
 
 
@@ -12,6 +13,7 @@ class PathCondition:
     uninstalled_packages: Set[PackageAtom] = field(default_factory=set)
     successful_commands: Set[str] = field(default_factory=set)
     failed_commands: Set[str] = field(default_factory=set)
+    kernel_version_range: Optional[KernelVersionRange] = None
 
     def __iadd__(self, other: PathCondition) -> PathCondition:
         self.enabled_use_flags.update(other.enabled_use_flags)
@@ -20,6 +22,7 @@ class PathCondition:
         self.uninstalled_packages.update(other.uninstalled_packages)
         self.successful_commands.update(other.successful_commands)
         self.failed_commands.update(other.failed_commands)
+        self.kernel_version_range = KernelVersionRange.intersect(self.kernel_version_range, other.kernel_version_range)
         return self
 
     def __add__(self, other: PathCondition) -> PathCondition:
@@ -30,22 +33,46 @@ class PathCondition:
             uninstalled_packages=self.uninstalled_packages | other.uninstalled_packages,
             successful_commands=self.successful_commands | other.successful_commands,
             failed_commands=self.failed_commands | other.failed_commands,
+            kernel_version_range=KernelVersionRange.intersect(self.kernel_version_range, other.kernel_version_range),
         )
 
     def __bool__(self) -> bool:
         return bool(
             self.enabled_use_flags or self.disabled_use_flags or self.installed_packages or self.uninstalled_packages or
-            self.successful_commands or self.failed_commands)
+            self.successful_commands or self.failed_commands or self.kernel_version_range is not None)
 
     # Commands can be negated in bash with '!', this is a helper method
-    def negated_add(self, other: PathCondition) -> PathCondition:
-        self.enabled_use_flags.update(other.disabled_use_flags)
-        self.disabled_use_flags.update(other.enabled_use_flags)
-        self.installed_packages.update(other.uninstalled_packages)
-        self.uninstalled_packages.update(other.installed_packages)
-        self.successful_commands.update(other.failed_commands)
-        self.failed_commands.update(other.successful_commands)
-        return self
+    def and_not(self, other: PathCondition) -> List[PathCondition]:
+        path_conditions: List[PathCondition] = []
+
+        enabled_use_flags = self.enabled_use_flags | other.disabled_use_flags
+        disabled_use_flags = self.disabled_use_flags | other.enabled_use_flags
+        installed_packages = self.installed_packages | other.uninstalled_packages
+        uninstalled_packages = self.uninstalled_packages | other.installed_packages
+        successful_commands = self.successful_commands | other.failed_commands
+        failed_commands = self.failed_commands | other.successful_commands
+
+        if other.kernel_version_range is not None:
+            for other_negated_kernel_version_range in other.kernel_version_range.negate():
+                new_kernel_version_range = KernelVersionRange.intersect(self.kernel_version_range,
+                                                                        other_negated_kernel_version_range)
+                # We don't want to have unsatisfiable path conditions
+                if new_kernel_version_range.is_empty():
+                    continue
+
+                path_conditions.append(
+                    PathCondition(enabled_use_flags=enabled_use_flags, disabled_use_flags=disabled_use_flags,
+                                  installed_packages=installed_packages, uninstalled_packages=uninstalled_packages,
+                                  successful_commands=successful_commands, failed_commands=failed_commands,
+                                  kernel_version_range=new_kernel_version_range))
+        else:
+            path_conditions.append(
+                PathCondition(enabled_use_flags=enabled_use_flags, disabled_use_flags=disabled_use_flags,
+                              installed_packages=installed_packages, uninstalled_packages=uninstalled_packages,
+                              successful_commands=successful_commands, failed_commands=failed_commands,
+                              kernel_version_range=self.kernel_version_range))
+
+        return path_conditions
 
     # De Morgan negation
     def negate(self) -> List[PathCondition]:
@@ -69,4 +96,7 @@ class PathCondition:
             negated_conditions.append(PathCondition(failed_commands={successful_command}))
         for failed_command in sorted(self.failed_commands):
             negated_conditions.append(PathCondition(successful_commands={failed_command}))
+        if self.kernel_version_range is not None:
+            for negated_kernel_version_range in self.kernel_version_range.negate():
+                negated_conditions.append(PathCondition(kernel_version_range=negated_kernel_version_range))
         return negated_conditions

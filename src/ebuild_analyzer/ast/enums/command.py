@@ -6,3 +6,4 @@ class Command(StrEnum):
     HAS_VERSION = "has_version"
     OPTFEATURE = "optfeature"
     OPTFEATURE_HEADER = "optfeature_header"
+    KERNEL_IS = "kernel_is"
