@@ -8,13 +8,13 @@ from ebuild_analyzer.package_atoms.package_atom import PackageAtom
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
 
 
-def test_iadd():
+def test_iand():
     pc = PathCondition(
         enabled_use_flags={'a'},
         disabled_use_flags={'b'},
     )
 
-    pc += PathCondition(
+    pc &= PathCondition(
         enabled_use_flags={'c'},
         installed_packages={PackageAtom("atom")}
     )
@@ -26,7 +26,7 @@ def test_iadd():
     )
 
 
-def test_add():
+def test_and():
     pc = PathCondition(
         enabled_use_flags={'a'},
         disabled_use_flags={'b'},
@@ -37,7 +37,7 @@ def test_add():
         installed_packages={PackageAtom("atom")}
     )
 
-    new_pc = pc + pc2
+    new_pc = pc & pc2
 
     assert pc == PathCondition(
         enabled_use_flags={'a'},

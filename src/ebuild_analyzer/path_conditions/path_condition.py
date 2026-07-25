@@ -15,7 +15,7 @@ class PathCondition:
     failed_commands: Set[str] = field(default_factory=set)
     kernel_version_range: Optional[KernelVersionRange] = None
 
-    def __iadd__(self, other: PathCondition) -> PathCondition:
+    def __iand__(self, other: PathCondition) -> PathCondition:
         self.enabled_use_flags.update(other.enabled_use_flags)
         self.disabled_use_flags.update(other.disabled_use_flags)
         self.installed_packages.update(other.installed_packages)
@@ -25,7 +25,7 @@ class PathCondition:
         self.kernel_version_range = KernelVersionRange.intersect(self.kernel_version_range, other.kernel_version_range)
         return self
 
-    def __add__(self, other: PathCondition) -> PathCondition:
+    def __and__(self, other: PathCondition) -> PathCondition:
         return PathCondition(
             enabled_use_flags=self.enabled_use_flags | other.enabled_use_flags,
             disabled_use_flags=self.disabled_use_flags | other.disabled_use_flags,

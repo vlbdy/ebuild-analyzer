@@ -142,7 +142,7 @@ class PathConditionsAnalyzer:
         if not second:
             return first.copy()
 
-        return [first_condition + second_condition for first_condition in first for second_condition in second]
+        return [first_condition & second_condition for first_condition in first for second_condition in second]
 
     def __is_optfeature_command_node(self, node: Node) -> bool:
         if node.type == NodeType.COMMAND:
