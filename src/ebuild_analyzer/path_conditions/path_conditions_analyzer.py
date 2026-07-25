@@ -1,19 +1,26 @@
-from typing import List
+from typing import List, Dict
 
 from tree_sitter import Node
 
 from ebuild_analyzer.ast import ast_node_utils
 from ebuild_analyzer.ast.enums.command import Command
 from ebuild_analyzer.ast.enums.node_types import NodeType
-from ebuild_analyzer.kernel_version.kernel_version import KernelVersion
-from ebuild_analyzer.kernel_version.kernel_version_range import KernelVersionRange
-from ebuild_analyzer.package_atoms.package_atom_parser import PackageAtomParser
+from ebuild_analyzer.path_conditions.command_interpreters.command_interpreter import CommandInterpreter
+from ebuild_analyzer.path_conditions.command_interpreters.has_version_command_interpreter import \
+    HasVersionCommandInterpreter
+from ebuild_analyzer.path_conditions.command_interpreters.kernel_is_command_interpreter import \
+    KernelIsCommandInterpreter
+from ebuild_analyzer.path_conditions.command_interpreters.use_command_interpreter import UseCommandInterpreter
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
 
 
 class PathConditionsAnalyzer:
     def __init__(self):
-        self.__package_atom_parser = PackageAtomParser()
+        self.__command_interpreters: Dict[Command, CommandInterpreter] = {
+            Command.USE: UseCommandInterpreter(),
+            Command.HAS_VERSION: HasVersionCommandInterpreter(),
+            Command.KERNEL_IS: KernelIsCommandInterpreter(),
+        }
 
         self.__original_node = None  # Used during analysis to avoid using the original node as a path condition
         self.__is_in_else_clause = False  # Also used during analysis internally
@@ -95,45 +102,14 @@ class PathConditionsAnalyzer:
         return path_conditions
 
     def __analyze_command_node(self, command_node: Node) -> PathCondition:
-        path_conditions = PathCondition()
-
         command = ast_node_utils.get_command_name_from_command_node(command_node)
         arguments = ast_node_utils.get_arguments_from_command_node(command_node)
-        if command == Command.USE:
-            use_flag = arguments[0]
-            if use_flag.startswith('!'):
-                path_conditions.disabled_use_flags.add(use_flag[1:])
-            else:
-                path_conditions.enabled_use_flags.add(use_flag)
-        elif command == Command.HAS_VERSION:
-            path_conditions.installed_packages.add(self.__package_atom_parser.parse(arguments[0]))
-        elif command == Command.KERNEL_IS:
-            # If the first argument is a digit, it means that no operator was specified
-            if arguments[0].isdigit():
-                operator = "eq"  # This is the default if no operator was specified
-                kernel_version_parts = arguments[0:]
-            else:
-                operator = arguments[0]
-                kernel_version_parts = arguments[1:]
-
-            # This line pads the kernel version parts with `None` if there aren't at least 3 parts
-            major, minor, patch = (kernel_version_parts + [0] * 3)[:3]
-            kernel_version = KernelVersion(major, minor, patch)
-            match operator:
-                case "-lt" | "lt":
-                    path_conditions.kernel_version_range = KernelVersionRange.less_than(kernel_version)
-                case "-gt" | "gt":
-                    path_conditions.kernel_version_range = KernelVersionRange.greater_than(kernel_version)
-                case "-le" | "le":
-                    path_conditions.kernel_version_range = KernelVersionRange.at_most(kernel_version)
-                case "-ge" | "ge":
-                    path_conditions.kernel_version_range = KernelVersionRange.at_least(kernel_version)
-                case "-eq" | "eq":
-                    path_conditions.kernel_version_range = KernelVersionRange.exactly(kernel_version)
-        else:
-            path_conditions.successful_commands.add(command_node.text.decode())
-
-        return path_conditions
+        try:
+            return self.__command_interpreters[Command(command)].create_path_conditions(arguments)
+        except (ValueError, IndexError):
+            # If the command is not defined in the Command enum or if there is no handler for it,
+            # then just add the command as it is to the path conditions.
+            return PathCondition(successful_commands={command_node.text.decode()})
 
     def __combine_conditions(self, first: List[PathCondition], second: List[PathCondition]) \
             -> List[PathCondition]:
