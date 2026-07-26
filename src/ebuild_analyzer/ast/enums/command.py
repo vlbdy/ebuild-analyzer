@@ -7,3 +7,4 @@ class Command(StrEnum):
     OPTFEATURE = "optfeature"
     OPTFEATURE_HEADER = "optfeature_header"
     KERNEL_IS = "kernel_is"
+    LINUX_CONFIG_EXISTS = "linux_config_exists"

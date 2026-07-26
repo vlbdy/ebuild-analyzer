@@ -22,6 +22,11 @@ class PathConditionsAnalyzer:
             Command.KERNEL_IS: KernelIsCommandInterpreter(),
         }
 
+        # Some ebuild commands don't have any real meaning in the commands of PathConditions
+        self.__ignored_commands = [
+            Command.LINUX_CONFIG_EXISTS,
+        ]
+
         self.__original_node = None  # Used during analysis to avoid using the original node as a path condition
         self.__is_in_else_clause = False  # Also used during analysis internally
 
@@ -41,6 +46,8 @@ class PathConditionsAnalyzer:
 
             current_node = current_node.parent
 
+        path_conditions = self.__remove_empty_path_conditions(path_conditions)
+        path_conditions = self.__remove_duplicate_path_conditions(path_conditions)
         return path_conditions
 
     def __analyze_node_according_to_type(self, node: Node) -> List[PathCondition]:
@@ -106,10 +113,12 @@ class PathConditionsAnalyzer:
         arguments = ast_node_utils.get_arguments_from_command_node(command_node)
         try:
             return self.__command_interpreters[Command(command)].create_path_conditions(arguments)
-        except (ValueError, IndexError):
-            # If the command is not defined in the Command enum or if there is no handler for it,
-            # then just add the command as it is to the path conditions.
-            return PathCondition(successful_commands={command_node.text.decode()})
+        except (ValueError, KeyError):
+            if command not in self.__ignored_commands:
+                # If the command is not defined in the Command enum or if there is no handler for it,
+                # then just add the command as it is to the path conditions.
+                return PathCondition(successful_commands={command_node.text.decode()})
+            return PathCondition()
 
     def __combine_conditions(self, first: List[PathCondition], second: List[PathCondition]) \
             -> List[PathCondition]:
@@ -138,3 +147,13 @@ class PathConditionsAnalyzer:
         for condition in conditions:
             new_conditions = self.__combine_conditions(condition.negate(), new_conditions)
         return new_conditions
+
+    def __remove_empty_path_conditions(self, path_conditions: List[PathCondition]) -> List[PathCondition]:
+        return [condition for condition in path_conditions if condition]
+
+    def __remove_duplicate_path_conditions(self, path_conditions: List[PathCondition]) -> List[PathCondition]:
+        deduplicated_conditions = []
+        for condition in path_conditions:
+            if condition not in deduplicated_conditions:
+                deduplicated_conditions.append(condition)
+        return deduplicated_conditions
