@@ -16,6 +16,10 @@ class KernelIsCommandInterpreter(CommandInterpreter):
             operator = arguments[0]
             kernel_version_parts = arguments[1:]
 
+        # Some ebuilds pass the kernel version with periods between the parts, for example '6.11.3' instead of '6 11 3'
+        if '.' in kernel_version_parts[0]:
+            kernel_version_parts = kernel_version_parts[0].split('.')
+
         # This line pads the kernel version parts with `None` if there aren't at least 3 parts
         major, minor, patch = (kernel_version_parts + [0] * 3)[:3]
         kernel_version = KernelVersion(major, minor, patch)
