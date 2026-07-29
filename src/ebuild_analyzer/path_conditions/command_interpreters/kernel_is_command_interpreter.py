@@ -7,11 +7,13 @@ from ebuild_analyzer.path_conditions.path_condition import PathCondition
 
 
 class KernelIsCommandInterpreter(CommandInterpreter):
+    __DEFAULT_OPERATOR = "eq"  # This is the default if no operator was specified
+
     def create_path_conditions(self, arguments: List[str]) -> PathCondition:
         # If the first argument is a digit, it means that no operator was specified
-        if arguments[0].isdigit():
-            operator = "eq"  # This is the default if no operator was specified
-            kernel_version_parts = arguments[0:]
+        if arguments[0].isdigit() or len(arguments) == 1:
+            operator = self.__DEFAULT_OPERATOR
+            kernel_version_parts = arguments
         else:
             operator = arguments[0]
             kernel_version_parts = arguments[1:]
@@ -21,7 +23,9 @@ class KernelIsCommandInterpreter(CommandInterpreter):
             kernel_version_parts = kernel_version_parts[0].split('.')
 
         # This line pads the kernel version parts with `None` if there aren't at least 3 parts
-        major, minor, patch = (kernel_version_parts + [0] * 3)[:3]
+        major, minor, patch = (
+            int(x) for x in (kernel_version_parts + [0] * 3)[:3]
+        )
         kernel_version = KernelVersion(major, minor, patch)
 
         match operator:

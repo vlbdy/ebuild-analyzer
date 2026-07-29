@@ -10,4 +10,8 @@ class HasVersionCommandInterpreter(CommandInterpreter):
         self.__package_atom_parser = PackageAtomParser()
 
     def create_path_conditions(self, arguments: List[str]) -> PathCondition:
-        return PathCondition(installed_packages={self.__package_atom_parser.parse(arguments[0])})
+        package_atom_argument = arguments[0]
+        # Ignore options such as -b or -r...
+        if package_atom_argument.startswith('-'):
+            package_atom_argument = arguments[1]
+        return PathCondition(installed_packages={self.__package_atom_parser.parse(package_atom_argument)})
