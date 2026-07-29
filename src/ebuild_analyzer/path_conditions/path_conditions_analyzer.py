@@ -12,6 +12,8 @@ from ebuild_analyzer.path_conditions.command_interpreters.kernel_is_command_inte
     KernelIsCommandInterpreter
 from ebuild_analyzer.path_conditions.command_interpreters.use_command_interpreter import UseCommandInterpreter
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
+from ebuild_analyzer.path_conditions.path_condition_utils import combine_path_conditions, \
+    negate_and_combine_path_conditions, remove_duplicate_path_conditions, remove_empty_path_conditions
 
 
 class PathConditionsAnalyzer:
@@ -37,7 +39,7 @@ class PathConditionsAnalyzer:
         current_node = node.parent
         while current_node.type != NodeType.PROGRAM:
             current_node_path_conditions = self.__analyze_node_according_to_type(current_node)
-            path_conditions = self.__combine_conditions(path_conditions, current_node_path_conditions)
+            path_conditions = combine_path_conditions(path_conditions, current_node_path_conditions)
 
             # We must skip the parent of an `elif_clause` because it is the first if statement. The if statement
             # is irrelevant since we were in the elif clause therefore we skip it.
@@ -46,8 +48,8 @@ class PathConditionsAnalyzer:
 
             current_node = current_node.parent
 
-        path_conditions = self.__remove_empty_path_conditions(path_conditions)
-        path_conditions = self.__remove_duplicate_path_conditions(path_conditions)
+        path_conditions = remove_empty_path_conditions(path_conditions)
+        path_conditions = remove_duplicate_path_conditions(path_conditions)
         return path_conditions
 
     def __analyze_node_according_to_type(self, node: Node) -> List[PathCondition]:
@@ -65,7 +67,7 @@ class PathConditionsAnalyzer:
             # Only if statements can have else clauses, so they are handled here
             if self.__is_in_else_clause:
                 self.__is_in_else_clause = False
-                return self.__negate_and_combine_path_conditions(conditions)
+                return negate_and_combine_path_conditions(conditions)
             else:
                 return conditions
         else:
@@ -96,14 +98,14 @@ class PathConditionsAnalyzer:
         for condition_node in condition_nodes:
             new_path_conditions = self.__analyze_node_according_to_type(condition_node)
             if last_node_type == NodeType.AND:
-                path_conditions = self.__combine_conditions(path_conditions, new_path_conditions)
+                path_conditions = combine_path_conditions(path_conditions, new_path_conditions)
             else:
                 path_conditions.extend(new_path_conditions)
                 # This check is specifically for cases where an optfeature command follows a condition like:
                 #   has_version ... || optfeature ...
                 # In this case, the optfeature is advertised if the condition is *not* met, therefore we must negate it.
                 if self.__is_optfeature_command_node(condition_node):
-                    path_conditions = self.__negate_and_combine_path_conditions(path_conditions)
+                    path_conditions = negate_and_combine_path_conditions(path_conditions)
             last_node_type = condition_node.type
 
         return path_conditions
@@ -120,15 +122,6 @@ class PathConditionsAnalyzer:
                 return PathCondition(successful_commands={command_node.text.decode()})
             return PathCondition()
 
-    def __combine_conditions(self, first: List[PathCondition], second: List[PathCondition]) \
-            -> List[PathCondition]:
-        if not first:
-            return second.copy()
-        if not second:
-            return first.copy()
-
-        return [first_condition & second_condition for first_condition in first for second_condition in second]
-
     def __is_optfeature_command_node(self, node: Node) -> bool:
         if node.type == NodeType.COMMAND:
             return self.__does_command_node_refer_to_optfeature(node)
@@ -141,19 +134,3 @@ class PathConditionsAnalyzer:
     def __does_command_node_refer_to_optfeature(self, command_node: Node) -> bool:
         command = ast_node_utils.get_command_name_from_command_node(command_node)
         return command.startswith(Command.OPTFEATURE) and not command.startswith(Command.OPTFEATURE_HEADER)
-
-    def __negate_and_combine_path_conditions(self, conditions: List[PathCondition]) -> List[PathCondition]:
-        new_conditions: List[PathCondition] = []
-        for condition in conditions:
-            new_conditions = self.__combine_conditions(condition.negate(), new_conditions)
-        return new_conditions
-
-    def __remove_empty_path_conditions(self, path_conditions: List[PathCondition]) -> List[PathCondition]:
-        return [condition for condition in path_conditions if condition]
-
-    def __remove_duplicate_path_conditions(self, path_conditions: List[PathCondition]) -> List[PathCondition]:
-        deduplicated_conditions = []
-        for condition in path_conditions:
-            if condition not in deduplicated_conditions:
-                deduplicated_conditions.append(condition)
-        return deduplicated_conditions
