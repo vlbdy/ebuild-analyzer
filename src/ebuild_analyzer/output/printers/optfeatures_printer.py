@@ -1,6 +1,6 @@
 import subprocess
 from collections import defaultdict
-from typing import List
+from typing import List, Iterable, Collection
 
 from ebuild_analyzer.optfeatures.optfeature import OptFeature
 from ebuild_analyzer.optfeatures.optfeature_availability_checker import OptFeatureAvailabilityChecker
@@ -111,7 +111,7 @@ class OptFeaturesPrinter:
                 else:
                     self.__buffer.push('\n')
 
-    def __print_package_atoms(self, package_atoms: List[PackageAtom], installed_color: Color = Color.GREEN,
+    def __print_package_atoms(self, package_atoms: Collection[PackageAtom], installed_color: Color = Color.GREEN,
                               uninstalled_color: Color = Color.RED) -> None:
         for i, package_atom in enumerate(package_atoms):
             self.__print_package_atom(package_atom, installed_color, uninstalled_color)
@@ -140,14 +140,14 @@ class OptFeaturesPrinter:
         if package_atom.required_enabled_use_flags or package_atom.required_disabled_use_flags:
             self.__buffer.push(']')
 
-    def __print_use_flags_to_disable_list(self, package_cpv: PackageCPV, use_flags: List[str]) -> None:
+    def __print_use_flags_to_disable_list(self, package_cpv: PackageCPV, use_flags: Collection[str]) -> None:
         for i, use_flag in enumerate(use_flags):
             self.__print_colored_use_flag_to_disable(package_cpv, use_flag)
 
             if i != len(use_flags) - 1:
                 self.__buffer.push(', ')
 
-    def __print_use_flags_to_enable_list(self, package_cpv: PackageCPV, use_flags: List[str]) -> None:
+    def __print_use_flags_to_enable_list(self, package_cpv: PackageCPV, use_flags: Collection[str]) -> None:
         for i, use_flag in enumerate(use_flags):
             self.__print_colored_use_flag_to_enable(package_cpv, use_flag)
 
@@ -191,7 +191,7 @@ class OptFeaturesPrinter:
         if use_flags:
             self.__buffer.push(f"[{use_flags}]")
 
-    def __print_commands(self, commands: List[str]) -> None:
+    def __print_commands(self, commands: Iterable[str]) -> None:
         for command in commands:
             if self.__run_unknown_commands:
                 self.__print_colored_command(command)
