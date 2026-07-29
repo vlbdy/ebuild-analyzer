@@ -1,5 +1,4 @@
 from ebuild_analyzer.ast.bash_parser import BashParser
-from ebuild_analyzer.ast.enums.node_types import NodeType
 from ebuild_analyzer.commands.handlers.command_handler import CommandHandler
 from ebuild_analyzer.ebuild.ebuild import Ebuild
 from ebuild_analyzer.kernel_config.checked.checked_kernel_config_extractor import CheckedKernelConfigExtractor
@@ -13,10 +12,5 @@ class KernelConfigCommandHandler(CommandHandler):
 
     def handle(self, package_cpv: PackageCPV, ebuild: Ebuild) -> None:
         ebuild_ast = self.__bash_parser.parse(ebuild.contents)
-
-        # In Bash grammar, variable assignment nodes in the AST always start with the name of the variable
-        # on the leftmost side. This means that I can reliably look for all variable assignment nodes that start
-        # with the name of the variable I want.
-        config_check_assignment_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT, "CONFIG_CHECK")
-        kernel_config_keys = self.__kernel_config_keys_extractor.extract(config_check_assignment_nodes)
+        kernel_config_keys = self.__kernel_config_keys_extractor.extract(ebuild_ast)
         print(kernel_config_keys)

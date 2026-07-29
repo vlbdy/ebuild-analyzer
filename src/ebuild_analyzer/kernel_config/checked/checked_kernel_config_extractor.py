@@ -3,6 +3,7 @@ from typing import List
 from tree_sitter import Node
 
 from ebuild_analyzer.ast import ast_node_utils
+from ebuild_analyzer.ast.bash_ast import BashAST
 from ebuild_analyzer.ast.enums.node_types import NodeType
 from ebuild_analyzer.kernel_config.checked.checked_kernel_config_key import CheckedKernelConfigKey
 from ebuild_analyzer.kernel_config.checked.config_check_value_normalizer import ConfigCheckValueNormalizer
@@ -17,7 +18,14 @@ class CheckedKernelConfigExtractor:
         self.__config_check_value_normalizer = ConfigCheckValueNormalizer()
         self.__config_check_value_parser = ConfigCheckValueParser()
 
-    def extract(self, config_check_variable_nodes: List[Node]) -> List[CheckedKernelConfigKey]:
+    def extract(self, ebuild_ast: BashAST) -> List[CheckedKernelConfigKey]:
+        # In Bash grammar, variable assignment nodes in the AST always start with the name of the variable
+        # on the leftmost side. This means that I can reliably look for all variable assignment nodes that start
+        # with the name of the variable I want.
+        config_check_assignment_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT, "CONFIG_CHECK")
+        return self.__extract_from_config_check_variables(config_check_assignment_nodes)
+
+    def __extract_from_config_check_variables(self, config_check_variable_nodes: List[Node]) -> List[CheckedKernelConfigKey]:
         kernel_config_keys: List[CheckedKernelConfigKey] = []
 
         for node in config_check_variable_nodes:
