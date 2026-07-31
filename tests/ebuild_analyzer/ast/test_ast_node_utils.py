@@ -89,3 +89,48 @@ def test_raise_unexpected_node_type_exception(bash_parser: BashParser, func: Cal
 
     with pytest.raises(UnexpectedNodeTypeException):
         ast_node_utils.get_all_condition_nodes(root_node)
+
+
+def test_is_descendant(bash_parser: BashParser):
+    bash = b"a && b || c && d"
+    ast = bash_parser.parse(bash)
+
+    # Bash grammar parses this into the following structure (excluding the operators && and ||):
+    # list_abcd
+    # ├── list_abc
+    # │   ├── list_ab
+    # │   │   ├── a
+    # │   │   └── b
+    # │   └── c
+    # └── d
+    list_abcd, list_abc, list_ab = ast.get_all_nodes_of_type(NodeType.LIST)
+    a = ast.get_all_nodes_of_type(NodeType.COMMAND, "a")[0]
+    b = ast.get_all_nodes_of_type(NodeType.COMMAND, "b")[0]
+    c = ast.get_all_nodes_of_type(NodeType.COMMAND, "c")[0]
+    d = ast.get_all_nodes_of_type(NodeType.COMMAND, "d")[0]
+
+    assert ast_node_utils.is_descendant(list_abcd, list_abc)
+    assert ast_node_utils.is_descendant(list_abcd, list_ab)
+    assert ast_node_utils.is_descendant(list_abcd, a)
+    assert ast_node_utils.is_descendant(list_abcd, b)
+    assert ast_node_utils.is_descendant(list_abcd, c)
+    assert ast_node_utils.is_descendant(list_abcd, d)
+
+    assert ast_node_utils.is_descendant(list_abc, list_ab)
+    assert ast_node_utils.is_descendant(list_abc, a)
+    assert ast_node_utils.is_descendant(list_abc, b)
+    assert ast_node_utils.is_descendant(list_abc, c)
+
+    assert ast_node_utils.is_descendant(list_ab, a)
+    assert ast_node_utils.is_descendant(list_ab, b)
+
+    assert not ast_node_utils.is_descendant(list_abc, list_abcd)
+    assert not ast_node_utils.is_descendant(list_abc, d)
+
+    assert not ast_node_utils.is_descendant(list_ab, list_abc)
+    assert not ast_node_utils.is_descendant(list_ab, list_abcd)
+    assert not ast_node_utils.is_descendant(list_ab, c)
+    assert not ast_node_utils.is_descendant(list_ab, d)
+
+    assert not ast_node_utils.is_descendant(c, a)
+    assert not ast_node_utils.is_descendant(c, b)

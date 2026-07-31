@@ -67,3 +67,9 @@ def is_command_node(node: Node) -> bool:
 
 def is_compound_node(node: Node) -> bool:
     return node.type in (NodeType.IF_STATEMENT, NodeType.LIST, NodeType.ELIF_CLAUSE)
+
+def is_descendant(ancestor: Node, node: Node) -> bool:
+    for child in ancestor.children:
+        if child == node or is_descendant(child, node):
+            return True
+    return False
