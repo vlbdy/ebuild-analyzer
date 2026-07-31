@@ -157,6 +157,8 @@ def test_if_else_statements(bash: bytes, expected_path_conditions: List[PathCond
      [PathCondition(enabled_use_flags={'b', 'c'})]),
     (b"if use a; then nothing; elif use b; then if use c; then nothing; elif use d; then optfeature; fi; fi",
      [PathCondition(enabled_use_flags={'b', 'd'})]),
+    (b"if use a; then nothing; elif use b; then nothing; else optfeature; fi",
+     [PathCondition(disabled_use_flags={"b"})])
 ])
 def test_if_elif_statements(bash: bytes, expected_path_conditions: List[PathCondition], bash_parser: BashParser,
                             path_conditions_analyzer: PathConditionsAnalyzer):
@@ -169,10 +171,12 @@ def test_if_elif_statements(bash: bytes, expected_path_conditions: List[PathCond
     (b"real_command && linux_config_exists && optfeature", [PathCondition(successful_commands={"real_command"})]),
     (b"real_command || linux_config_exists && optfeature", [PathCondition(successful_commands={"real_command"})]),
     (b"linux_config_exists || linux_config_exists && optfeature", []),
-    (b"linux_config_exists || linux_config_exists && real_command && optfeature", [PathCondition(successful_commands={"real_command"})]),
+    (b"linux_config_exists || linux_config_exists && real_command && optfeature",
+     [PathCondition(successful_commands={"real_command"})]),
 ])
-def test_ignored_commands_dont_appear_in_the_path_conditions(bash: bytes, expected_path_conditions: List[PathCondition], bash_parser: BashParser,
-                            path_conditions_analyzer: PathConditionsAnalyzer):
+def test_ignored_commands_dont_appear_in_the_path_conditions(bash: bytes, expected_path_conditions: List[PathCondition],
+                                                             bash_parser: BashParser,
+                                                             path_conditions_analyzer: PathConditionsAnalyzer):
     command_node = __get_optfeature_command_node(bash_parser, bash)
     assert path_conditions_analyzer.analyze(command_node) == expected_path_conditions
 

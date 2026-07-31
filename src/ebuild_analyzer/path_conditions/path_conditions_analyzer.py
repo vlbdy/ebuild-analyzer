@@ -41,9 +41,7 @@ class PathConditionsAnalyzer:
             current_node_path_conditions = self.__analyze_node_according_to_type(current_node)
             path_conditions = combine_path_conditions(path_conditions, current_node_path_conditions)
 
-            # We must skip the parent of an `elif_clause` because it is the first if statement. The if statement
-            # is irrelevant since we were in the elif clause therefore we skip it.
-            if current_node.type == NodeType.ELIF_CLAUSE:
+            if self.__should_skip_direct_parent(current_node):
                 current_node = current_node.parent
 
             current_node = current_node.parent
@@ -58,13 +56,19 @@ class PathConditionsAnalyzer:
 
         if node.type == NodeType.ELSE_CLAUSE:
             self.__is_in_else_clause = True
+            # The else clause is part of the closest if/elif. elif clauses are siblings with else clauses, but
+            # if statements are parents of else clauses. This means that we must check if the previous sibling
+            # of the else clause is an elif statement. If it is, that is the clause that must be analyzed and negated.
+            # Otherwise, negate the parent if statement.
+            if node.prev_sibling is not None and node.prev_sibling.type == NodeType.ELIF_CLAUSE:
+                node = node.prev_sibling
 
         if ast_node_utils.is_command_node(node):
             return self.__analyze_simple_node(node)
         elif ast_node_utils.is_compound_node(node):
             conditions = self.__analyze_compound_node(node)
 
-            # Only if statements can have else clauses, so they are handled here
+            # Only if/elif statements can have else clauses, so they are handled here
             if self.__is_in_else_clause:
                 self.__is_in_else_clause = False
                 return negate_and_combine_path_conditions(conditions)
@@ -134,3 +138,14 @@ class PathConditionsAnalyzer:
     def __does_command_node_refer_to_optfeature(self, command_node: Node) -> bool:
         command = ast_node_utils.get_command_name_from_command_node(command_node)
         return command.startswith(Command.OPTFEATURE) and not command.startswith(Command.OPTFEATURE_HEADER)
+
+    def __should_skip_direct_parent(self, node: Node) -> bool:
+        # The first part refers to the fact that the parent of elif clauses is an if statement (with different
+        # conditions most likely). The if statement is not relevant if we analyzed the elif statement since only one
+        # of if/elif are evaluated in practice.
+        #
+        # The second part is about when the analyzed node is in an 'else clause' which is the direct sibling of an
+        # 'elif clause', we must analyze the sibling elif clause and then skip analyzing the parent if statement
+        # because the else clause is part of the elif clause.
+        return node.type == NodeType.ELIF_CLAUSE or \
+            node.prev_sibling is not None and node.prev_sibling.type == NodeType.ELIF_CLAUSE
