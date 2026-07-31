@@ -27,6 +27,13 @@ def test_no_conditions(bash_parser: BashParser, path_conditions_analyzer: PathCo
     (b"use a || use a && optfeature", [PathCondition(enabled_use_flags={'a'})]),
     (b"use a && use a && optfeature", [PathCondition(enabled_use_flags={'a'})]),
 
+    (b"use a && optfeature && use b", [PathCondition(enabled_use_flags={'a'})]),
+    (b"use a && optfeature && use b && use c", [PathCondition(enabled_use_flags={'a'})]),
+    (b"use a && use z && optfeature && use b && use c", [PathCondition(enabled_use_flags={'a', 'z'})]),
+    (b"use a || use z && optfeature && use b && use c",
+     [PathCondition(enabled_use_flags={'a'}), PathCondition(enabled_use_flags={'z'})]),
+    (b"use a && use z && optfeature || use b || use c", [PathCondition(enabled_use_flags={'a', 'z'})]),
+
     (b"has_version pkg && optfeature", [PathCondition(installed_packages={PackageAtom('pkg')})]),
     (b"has_version pkg || optfeature", [PathCondition(uninstalled_packages={PackageAtom('pkg')})]),
 
@@ -183,8 +190,6 @@ def test_ignored_commands_dont_appear_in_the_path_conditions(bash: bytes, expect
 
 @pytest.mark.xfail(reason="Not implemented")
 @pytest.mark.parametrize("bash, expected_path_conditions", [
-    (b"use a && optfeature && use b", [PathCondition(enabled_use_flags={'a'})]),
-
     # The following test cases are similar to the test cases in `test_nested_if_statement_conditions`.
     # The difference is that those tests are technically also supposed to have the extra PathCondition added
     # to the end (where all the conditions in the OR'd commands are met).

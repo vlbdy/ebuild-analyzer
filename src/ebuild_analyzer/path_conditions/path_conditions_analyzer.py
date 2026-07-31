@@ -41,7 +41,7 @@ class PathConditionsAnalyzer:
             current_node_path_conditions = self.__analyze_node_according_to_type(current_node)
             path_conditions = combine_path_conditions(path_conditions, current_node_path_conditions)
 
-            if self.__should_skip_direct_parent(current_node):
+            while self.__should_skip_direct_parent(current_node):
                 current_node = current_node.parent
 
             current_node = current_node.parent
@@ -147,5 +147,11 @@ class PathConditionsAnalyzer:
         # The second part is about when the analyzed node is in an 'else clause' which is the direct sibling of an
         # 'elif clause', we must analyze the sibling elif clause and then skip analyzing the parent if statement
         # because the else clause is part of the elif clause.
+        #
+        # The third part is for when the analyzed node is in the middle of a bash list. We want to stop analysis
+        # on the list to prevent adding conditions past the analyzed node for example:
+        # `use a && command && use b && use c`
+        # `use b` and `use c` must be skipped in order to get correct path conditions.
         return node.type == NodeType.ELIF_CLAUSE or \
-            node.prev_sibling is not None and node.prev_sibling.type == NodeType.ELIF_CLAUSE
+            node.prev_sibling is not None and node.prev_sibling.type == NodeType.ELIF_CLAUSE or \
+            ast_node_utils.is_descendant(node, self.__original_node) and node.parent.type == NodeType.LIST
