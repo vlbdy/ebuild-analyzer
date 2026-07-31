@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "ebuild-analyzer"
 version = "0.1.0"
 description = "Analyzes ebuilds to retrieve information"
+license = "GPL-3.0-only"
 
 requires-python = ">= 3.11"
 dependencies = [
