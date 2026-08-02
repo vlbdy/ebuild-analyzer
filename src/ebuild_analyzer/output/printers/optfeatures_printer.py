@@ -2,6 +2,8 @@ import subprocess
 from collections import defaultdict
 from typing import List, Iterable, Collection
 
+from ebuild_analyzer.kernel_version.kernel_version_range import KernelVersionRange
+from ebuild_analyzer.kernel_version.local_kernel_version import get_local_kernel_version
 from ebuild_analyzer.optfeatures.optfeature import OptFeature
 from ebuild_analyzer.optfeatures.optfeature_availability_checker import OptFeatureAvailabilityChecker
 from ebuild_analyzer.output.ansi import Format, Color
@@ -99,6 +101,11 @@ class OptFeaturesPrinter:
             self.__buffer.indented_push("The following commands fail:\n")
             with self.__buffer.scoped_indent():
                 self.__print_commands(visibility_condition.failed_commands)
+
+        if visibility_condition.kernel_version_range is not None:
+            self.__buffer.indented_push("Kernel version in range: ")
+            self.__print_colored_kernel_version_range(visibility_condition.kernel_version_range)
+            self.__buffer.push('\n')
 
     def __print_packages_required_to_enable_optfeature(self, package_combinations: List[List[PackageAtom]]) -> None:
         with self.__buffer.scoped_indent():
@@ -205,6 +212,12 @@ class OptFeaturesPrinter:
             self.__buffer.indented_push(Color.GREEN(command))
         else:
             self.__buffer.indented_push(Color.RED(command))
+
+    def __print_colored_kernel_version_range(self, kernel_version_range: KernelVersionRange) -> None:
+        if kernel_version_range.contains(get_local_kernel_version()):
+            self.__buffer.push(Color.GREEN(str(kernel_version_range)))
+        else:
+            self.__buffer.push(Color.RED(str(kernel_version_range)))
 
     def __get_most_relevant_cpv(self, package_atom: PackageAtom) -> PackageCPV:
         if self.__portage_db.is_package_installed(package_atom):
