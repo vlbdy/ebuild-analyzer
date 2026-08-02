@@ -155,3 +155,22 @@ class KernelVersionRange:
             self._max_inclusive,
             self._is_empty,
         ))
+
+    def __str__(self) -> str:
+        if self._is_empty:
+            return "no kernel versions"
+        if self._min == self._max and self._min_inclusive and self._max_inclusive:
+            return f"kernel == {self._min}"
+        if self._min is None and self._max is None:
+            return "any kernel version"
+
+        if self._min is None:
+            op = "<=" if self._max_inclusive else "<"
+            return f"kernel {op} {self._max}"
+        if self._max is None:
+            op = ">=" if self._min_inclusive else ">"
+            return f"kernel {op} {self._min}"
+
+        left = "<=" if self._min_inclusive else "<"
+        right = "<=" if self._max_inclusive else "<"
+        return f"{self._min} {left} kernel {right} {self._max}"

@@ -116,3 +116,17 @@ def test_intersect(kernel_version_range1: Optional[KernelVersionRange],
                    kernel_version_range2: Optional[KernelVersionRange],
                    expected_result: Optional[KernelVersionRange]):
     assert KernelVersionRange.intersect(kernel_version_range1, kernel_version_range2) == expected_result
+
+
+@pytest.mark.parametrize("kernel_version_range, expected_string", [
+    (KernelVersionRange.unlimited(), "any kernel version"),
+    (KernelVersionRange.empty(), "no kernel versions"),
+    (KernelVersionRange.between(KernelVersion(1,1,1), KernelVersion(2,2,2)), "1.1.1 <= kernel < 2.2.2"),
+    (KernelVersionRange.at_least(KernelVersion(1,1,1)), "kernel >= 1.1.1"),
+    (KernelVersionRange.at_most(KernelVersion(1,1,1)), "kernel <= 1.1.1"),
+    (KernelVersionRange.less_than(KernelVersion(1,1,1)), "kernel < 1.1.1"),
+    (KernelVersionRange.greater_than(KernelVersion(1,1,1)), "kernel > 1.1.1"),
+    (KernelVersionRange.exactly(KernelVersion(1,1,1)), "kernel == 1.1.1"),
+])
+def test_str(kernel_version_range: KernelVersionRange, expected_string: str):
+    assert str(kernel_version_range) == expected_string
