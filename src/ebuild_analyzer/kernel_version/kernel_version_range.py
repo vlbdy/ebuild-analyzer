@@ -139,6 +139,9 @@ class KernelVersionRange:
         return kernel_version_range
 
     def __eq__(self, other: KernelVersionRange) -> bool:
+        if other is None:
+            return False
+
         if self.is_empty() and other.is_empty():
             return True
 
