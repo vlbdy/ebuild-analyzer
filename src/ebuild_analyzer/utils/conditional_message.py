@@ -10,7 +10,7 @@ class MessageSeverity(StrEnum):
     WARNING = "warning"
 
 
-@dataclass(frozen=True)
+@dataclass
 class ConditionalMessage:
     message: str
     severity: MessageSeverity

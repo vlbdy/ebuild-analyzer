@@ -12,6 +12,8 @@ from ebuild_analyzer.kernel_config.checked.config_check_value_parser import Conf
 from ebuild_analyzer.path_conditions.path_condition import PathCondition
 from ebuild_analyzer.path_conditions.path_condition_utils import combine_path_conditions
 from ebuild_analyzer.path_conditions.path_conditions_analyzer import PathConditionsAnalyzer
+from ebuild_analyzer.utils.conditional_message import ConditionalMessage, MessageSeverity
+from ebuild_analyzer.utils.conditional_message_utils import merge_conditional_messages_with_same_conditions
 
 
 class CheckedKernelConfigExtractor:
@@ -45,6 +47,9 @@ class CheckedKernelConfigExtractor:
                 command_conditions = self.__path_conditions_analyzer.analyze(command_node)
                 self.__apply_command_conditions_to_checked_kernel_config_conditions(checked_kernel_config_keys,
                                                                                     command_conditions)
+
+        # Add possible error/warning messages printed when a kernel config key requirement isn't satisfied
+        self.__enrich_unmet_messages(ebuild_ast, checked_kernel_config_keys)
 
         return checked_kernel_config_keys
 
@@ -97,3 +102,29 @@ class CheckedKernelConfigExtractor:
         for checked_kernel_config_key in checked_kernel_config_keys:
             checked_kernel_config_key.conditional_requirements = combine_path_conditions(
                 checked_kernel_config_key.conditional_requirements, command_conditions)
+
+    def __enrich_unmet_messages(self, ebuild_ast: BashAST,
+                                checked_kernel_config_keys: List[CheckedKernelConfigKey]) -> None:
+        for kernel_config_key in checked_kernel_config_keys:
+            unmet_warning_message_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT,
+                                                                      f"WARNING_{kernel_config_key.name}")
+            unmet_error_message_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT,
+                                                                    f"ERROR_{kernel_config_key.name}")
+
+            unmet_warning_messages = [self.__create_message_from_node_with_severity(warning, MessageSeverity.WARNING)
+                                      for warning in unmet_warning_message_nodes]
+            unmet_error_messages = [self.__create_message_from_node_with_severity(error, MessageSeverity.ERROR)
+                                    for error in unmet_error_message_nodes]
+
+            unmet_warning_messages = merge_conditional_messages_with_same_conditions(unmet_warning_messages)
+            unmet_error_messages = merge_conditional_messages_with_same_conditions(unmet_error_messages)
+
+            kernel_config_key.unmet_messages.extend(unmet_warning_messages)
+            kernel_config_key.unmet_messages.extend(unmet_error_messages)
+
+
+    def __create_message_from_node_with_severity(self, message_node: Node,
+                                                 severity: MessageSeverity) -> ConditionalMessage:
+        message_string = ast_node_utils.get_value_of_variable_assignment_node(message_node)
+        conditions = self.__path_conditions_analyzer.analyze(message_node)
+        return ConditionalMessage(message_string, severity, conditions)
