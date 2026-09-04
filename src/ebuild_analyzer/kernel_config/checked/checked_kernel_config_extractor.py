@@ -116,6 +116,11 @@ class CheckedKernelConfigExtractor:
             unmet_error_messages = [self.__create_message_from_node_with_severity(error, MessageSeverity.ERROR)
                                     for error in unmet_error_message_nodes]
 
+            # The reason for merging the messages here (for the same key with the same conditions) is that sometimes
+            # ebuilds write multiline messages this way:
+            #   ERROR_KVM_AMD="If you have an AMD CPU, you must enable KVM_AMD in"
+            #   ERROR_KVM_AMD+=" your kernel configuration."
+            # So merging the messages ensures that these messages stay in one piece instead of being disconnected.
             unmet_warning_messages = merge_conditional_messages_with_same_conditions(unmet_warning_messages)
             unmet_error_messages = merge_conditional_messages_with_same_conditions(unmet_error_messages)
 
