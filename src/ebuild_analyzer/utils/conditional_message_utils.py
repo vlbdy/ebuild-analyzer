@@ -9,7 +9,8 @@ def merge_conditional_messages_with_same_conditions(messages: List[ConditionalMe
     for current_message in messages:
         was_merged = False
         for merged_message in merged_messages:
-            if current_message.conditions == merged_message.conditions:
+            if (current_message.conditions == merged_message.conditions
+                    and current_message.severity == merged_message.severity):
                 merged_message.message += current_message.message
                 was_merged = True
                 break
