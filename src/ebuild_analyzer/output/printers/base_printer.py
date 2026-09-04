@@ -7,6 +7,7 @@ from ebuild_analyzer.output.ansi import Color, Format
 from ebuild_analyzer.output.output_buffer import OutputBuffer
 from ebuild_analyzer.package_atoms.package_atom import PackageAtom
 from ebuild_analyzer.package_atoms.package_cpv import PackageCPV
+from ebuild_analyzer.path_conditions.path_condition import PathCondition
 from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
@@ -122,3 +123,48 @@ class BasePrinter:
             return self._portage_db.get_best_installed_cpv(package_atom)
         else:
             return self._portage_db.get_best_visible_cpv(package_atom)
+
+    def print_colored_path_conditions(self, package_cpv: PackageCPV, conditions: List[PathCondition]) -> None:
+        for i, condition in enumerate(conditions):
+            self.print_colored_path_condition(package_cpv, condition)
+            if i != len(conditions) - 1:
+                self._buffer.push_indent()
+                self._buffer.indented_push(Format.BOLD(" or\n"))
+                self._buffer.pop_indent()
+
+    def print_colored_path_condition(self, package_cpv: PackageCPV, condition: PathCondition) -> None:
+        if condition.installed_packages:
+            self._buffer.indented_push("The following packages are installed: [")
+            self.print_package_atoms(condition.installed_packages)
+            self._buffer.push("]\n")
+
+        if condition.uninstalled_packages:
+            self._buffer.indented_push("The following packages are not installed: [")
+            self.print_package_atoms(condition.uninstalled_packages,
+                                     installed_color=Color.RED, uninstalled_color=Color.GREEN)
+            self._buffer.push("]\n")
+
+        if condition.enabled_use_flags:
+            self._buffer.indented_push("The following USE flags are enabled: [")
+            self.print_use_flags_to_enable_list(package_cpv, condition.enabled_use_flags)
+            self._buffer.push("]\n")
+
+        if condition.disabled_use_flags:
+            self._buffer.indented_push("The following USE flags are disabled: [")
+            self.print_use_flags_to_disable_list(package_cpv, condition.disabled_use_flags)
+            self._buffer.push("]\n")
+
+        if condition.successful_commands:
+            self._buffer.indented_push("The following commands succeed:\n")
+            with self._buffer.scoped_indent():
+                self.print_commands(condition.successful_commands)
+
+        if condition.failed_commands:
+            self._buffer.indented_push("The following commands fail:\n")
+            with self._buffer.scoped_indent():
+                self.print_commands(condition.failed_commands)
+
+        if condition.kernel_version_range is not None:
+            self._buffer.indented_push("Kernel version in range: ")
+            self.print_colored_kernel_version_range(condition.kernel_version_range)
+            self._buffer.push('\n')

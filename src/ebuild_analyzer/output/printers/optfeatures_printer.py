@@ -58,50 +58,7 @@ class OptFeaturesPrinter(BasePrinter):
         with self._buffer.scoped_indent():
             self._buffer.indented_push("Advertised when:\n")
             with self._buffer.scoped_indent():
-                for i, condition in enumerate(visibility_conditions):
-                    self.__print_optfeature_visibility_condition(package_cpv, condition)
-                    if i != len(visibility_conditions) - 1:
-                        self._buffer.push_indent()
-                        self._buffer.indented_push(Format.BOLD(" or\n"))
-                        self._buffer.pop_indent()
-
-    def __print_optfeature_visibility_condition(self, package_cpv: PackageCPV,
-                                                visibility_condition: PathCondition) -> None:
-        if visibility_condition.installed_packages:
-            self._buffer.indented_push("The following packages are installed: [")
-            self.print_package_atoms(visibility_condition.installed_packages)
-            self._buffer.push("]\n")
-
-        if visibility_condition.uninstalled_packages:
-            self._buffer.indented_push("The following packages are not installed: [")
-            self.print_package_atoms(visibility_condition.uninstalled_packages,
-                                     installed_color=Color.RED, uninstalled_color=Color.GREEN)
-            self._buffer.push("]\n")
-
-        if visibility_condition.enabled_use_flags:
-            self._buffer.indented_push("The following USE flags are enabled: [")
-            self.print_use_flags_to_enable_list(package_cpv, visibility_condition.enabled_use_flags)
-            self._buffer.push("]\n")
-
-        if visibility_condition.disabled_use_flags:
-            self._buffer.indented_push("The following USE flags are disabled: [")
-            self.print_use_flags_to_disable_list(package_cpv, visibility_condition.disabled_use_flags)
-            self._buffer.push("]\n")
-
-        if visibility_condition.successful_commands:
-            self._buffer.indented_push("The following commands succeed:\n")
-            with self._buffer.scoped_indent():
-                self.print_commands(visibility_condition.successful_commands)
-
-        if visibility_condition.failed_commands:
-            self._buffer.indented_push("The following commands fail:\n")
-            with self._buffer.scoped_indent():
-                self.print_commands(visibility_condition.failed_commands)
-
-        if visibility_condition.kernel_version_range is not None:
-            self._buffer.indented_push("Kernel version in range: ")
-            self.print_colored_kernel_version_range(visibility_condition.kernel_version_range)
-            self._buffer.push('\n')
+                self.print_colored_path_conditions(package_cpv, visibility_conditions)
 
     def __print_packages_required_to_enable_optfeature(self, package_combinations: List[List[PackageAtom]]) -> None:
         with self._buffer.scoped_indent():
