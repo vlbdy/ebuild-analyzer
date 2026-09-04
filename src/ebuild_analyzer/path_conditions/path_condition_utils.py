@@ -17,6 +17,10 @@ def combine_path_conditions(first: List[PathCondition], second: List[PathConditi
     return [first_condition & second_condition for first_condition in first for second_condition in second]
 
 
+# Negate every path condition and combine(AND) them.
+# For example, if:
+#   conditions  = [a,b]
+# The result is: [!a!b]
 def negate_and_combine_path_conditions(conditions: List[PathCondition]) -> List[PathCondition]:
     new_conditions: List[PathCondition] = []
     for condition in conditions:
