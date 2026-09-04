@@ -23,6 +23,5 @@ class LocalKernelConfigFactory:
         kernel_config_keys = set()
         for entry_line in entry_lines:
             if "CONFIG_" in entry_line:
-                print(entry_line)
                 kernel_config_keys.add(self.__kernel_config_entry_parser.parse(entry_line))
         return LocalKernelConfig(kernel_config_keys)
