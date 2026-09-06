@@ -25,7 +25,7 @@ class CommandDispatcher:
 
         self.__command_handlers: Dict[str, CommandHandler] = {
             "optfeatures": OptFeaturesCommandHandler(config, self.__portage_db),
-            "kernel-config": KernelConfigCommandHandler(),
+            "kernel-config": KernelConfigCommandHandler(config, self.__portage_db),
             "dump-ast": DumpAstCommandHandler(),
         }
 
