@@ -1,3 +1,5 @@
+import re
+
 from ebuild_analyzer.arguments.config import Config
 from ebuild_analyzer.ast.bash_parser import BashParser
 from ebuild_analyzer.ast.enums.command import Command
@@ -23,7 +25,7 @@ class OptFeaturesCommandHandler(CommandHandler):
     def handle(self, package_cpv: PackageCPV, ebuild: Ebuild) -> None:
         ebuild_ast = self.__bash_parser.parse(ebuild.contents)
 
-        optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.COMMAND, Command.OPTFEATURE)
+        optfeature_ast_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.COMMAND, re.compile(Command.OPTFEATURE))
         optfeatures = OptFeaturesExtractor().extract(optfeature_ast_nodes)
 
         if not optfeatures:

@@ -1,3 +1,4 @@
+import re
 from typing import List, Callable
 
 import pytest
@@ -104,10 +105,10 @@ def test_is_descendant(bash_parser: BashParser):
     # │   └── c
     # └── d
     list_abcd, list_abc, list_ab = ast.get_all_nodes_of_type(NodeType.LIST)
-    a = ast.get_all_nodes_of_type(NodeType.COMMAND, "a")[0]
-    b = ast.get_all_nodes_of_type(NodeType.COMMAND, "b")[0]
-    c = ast.get_all_nodes_of_type(NodeType.COMMAND, "c")[0]
-    d = ast.get_all_nodes_of_type(NodeType.COMMAND, "d")[0]
+    a = ast.get_all_nodes_of_type(NodeType.COMMAND, re.compile("a"))[0]
+    b = ast.get_all_nodes_of_type(NodeType.COMMAND, re.compile("b"))[0]
+    c = ast.get_all_nodes_of_type(NodeType.COMMAND, re.compile("c"))[0]
+    d = ast.get_all_nodes_of_type(NodeType.COMMAND, re.compile("d"))[0]
 
     assert ast_node_utils.is_descendant(list_abcd, list_abc)
     assert ast_node_utils.is_descendant(list_abcd, list_ab)

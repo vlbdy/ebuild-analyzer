@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 import pytest
@@ -29,7 +30,7 @@ def __assert_optfeatures_equal(first: List[OptFeature], second: List[OptFeature]
 ])
 def test_package_atom_extraction(bash: bytes, expected_optfeatures: List[OptFeature], bash_parser: BashParser,
                                  optfeatures_extractor: OptFeaturesExtractor):
-    optfeature_nodes = bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, "optfeature")
+    optfeature_nodes = bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, re.compile("optfeature"))
     __assert_optfeatures_equal(optfeatures_extractor.extract(optfeature_nodes), expected_optfeatures)
 
 
@@ -42,7 +43,7 @@ def test_package_atom_extraction(bash: bytes, expected_optfeatures: List[OptFeat
 ])
 def test_per_package_use_flags(bash: bytes, expected_optfeatures: List[OptFeature], bash_parser: BashParser,
                                optfeatures_extractor: OptFeaturesExtractor):
-    optfeature_nodes = bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, "optfeature")
+    optfeature_nodes = bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, re.compile("optfeature"))
     __assert_optfeatures_equal(optfeatures_extractor.extract(optfeature_nodes), expected_optfeatures)
 
 
@@ -59,7 +60,7 @@ def test_per_package_use_flags(bash: bytes, expected_optfeatures: List[OptFeatur
 ])
 def test_multiple_optfeatures(bash: bytes, expected_optfeatures: List[OptFeature], bash_parser: BashParser,
                               optfeatures_extractor: OptFeaturesExtractor):
-    optfeature_nodes = bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, "optfeature")
+    optfeature_nodes = bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, re.compile("optfeature"))
     __assert_optfeatures_equal(optfeatures_extractor.extract(optfeature_nodes), expected_optfeatures)
 
 
@@ -94,5 +95,5 @@ def test_multiple_optfeatures(bash: bytes, expected_optfeatures: List[OptFeature
 ])
 def test_header_extraction(bash: bytes, expected_optfeatures: List[OptFeature], bash_parser: BashParser,
                            optfeatures_extractor: OptFeaturesExtractor):
-    optfeature_nodes = bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, "optfeature")
+    optfeature_nodes = bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, re.compile("optfeature"))
     __assert_optfeatures_equal(optfeatures_extractor.extract(optfeature_nodes), expected_optfeatures)

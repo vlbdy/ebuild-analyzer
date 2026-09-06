@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 import pytest
@@ -11,7 +12,7 @@ from ebuild_analyzer.path_conditions.path_conditions_analyzer import PathConditi
 
 
 def __get_optfeature_command_node(bash_parser: BashParser, bash: bytes) -> Node:
-    return bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, "optfeature")[0]
+    return bash_parser.parse(bash).get_all_nodes_of_type(NodeType.COMMAND, re.compile("optfeature"))[0]
 
 
 def test_no_conditions(bash_parser: BashParser, path_conditions_analyzer: PathConditionsAnalyzer):
