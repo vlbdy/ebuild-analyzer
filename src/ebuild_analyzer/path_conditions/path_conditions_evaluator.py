@@ -50,7 +50,7 @@ class PathConditionsEvaluator:
 
     def are_successful_commands_satisfied(self, condition: PathCondition) -> bool:
         if not self.__run_unknown_commands:
-            return False
+            return True
 
         for command in condition.successful_commands:
             result = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -60,7 +60,7 @@ class PathConditionsEvaluator:
 
     def are_failed_commands_satisfied(self, condition: PathCondition) -> bool:
         if not self.__run_unknown_commands:
-            return False
+            return True
 
         for command in condition.failed_commands:
             result = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
