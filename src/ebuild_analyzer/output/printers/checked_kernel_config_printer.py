@@ -29,6 +29,8 @@ class CheckedKernelConfigPrinter(BasePrinter):
         disabled_kernel_config_keys = [key for key in checked_kernel_config_keys if
                                        not key.enabled and self.__is_kernel_config_key_relevant(package_cpv, key)]
 
+        self.__warn_about_potentially_hidden_checked_kernel_config_keys(checked_kernel_config_keys)
+
         if not enabled_kernel_config_keys and not disabled_kernel_config_keys:
             self._buffer.indented_push(
                 "No relevant checked kernel configuration to show. (See all checked kernel configuration with the --verbose flag)\n")
@@ -103,3 +105,15 @@ class CheckedKernelConfigPrinter(BasePrinter):
     def __is_kernel_config_key_relevant(self, package_cpv: PackageCPV, key: CheckedKernelConfigKey) -> bool:
         return self.__path_conditions_evaluator.are_satisfied(package_cpv, key.conditional_requirements) \
             or self.__config.verbose
+
+    def __warn_about_potentially_hidden_checked_kernel_config_keys(
+            self, checked_kernel_config_keys: List[CheckedKernelConfigKey]) -> None:
+        if not self.__config.run_unknown_commands and not self.__config.verbose:
+            for key in checked_kernel_config_keys:
+                for condition in key.conditional_requirements:
+                    if condition.successful_commands or condition.failed_commands:
+                        print(Color.YELLOW(
+                            "This package contains checked kernel configuration keys whose path conditions require running a command."))
+                        print(Color.YELLOW(
+                            "The kernel configuration key may be hidden. Consider using the --run-unknown-commands to get more accurate output, or --verbose to see everything unfiltered."))
+                        return
