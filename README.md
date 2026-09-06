@@ -6,7 +6,7 @@ Performs deep static analysis to extract information from Gentoo ebuilds.
 
 - Extraction of optional features (optfeatures)
 - Extraction of checked kernel configuration keys
-- Parsing and evaluation of path conditions
+- Parsing and evaluation of path conditions (required USE flags, packages, kernel version, general commands...)
 - Expansion of basic variables
 - User-friendly and understandable colored output
 - Comprehensive unit tests
