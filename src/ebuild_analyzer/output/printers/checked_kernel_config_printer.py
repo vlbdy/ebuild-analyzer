@@ -1,5 +1,6 @@
 from typing import List
 
+from ebuild_analyzer.arguments.config import Config
 from ebuild_analyzer.kernel_config.checked.checked_kernel_config_key import CheckedKernelConfigKey
 from ebuild_analyzer.kernel_config.local.local_kernel_config import LocalKernelConfig
 from ebuild_analyzer.output.ansi import Color, Format
@@ -10,9 +11,10 @@ from ebuild_analyzer.utils.portage_db import PortageDatabase
 
 
 class CheckedKernelConfigPrinter(BasePrinter):
-    def __init__(self, portage_db: PortageDatabase, run_unknown_commands: bool, local_kernel_config: LocalKernelConfig):
-        super().__init__(portage_db, run_unknown_commands)
+    def __init__(self, portage_db: PortageDatabase, config: Config, local_kernel_config: LocalKernelConfig):
+        super().__init__(portage_db, config.run_unknown_commands)
         self.__local_kernel_config = local_kernel_config
+        self.__config = config
 
     def print(self, package_cpv: PackageCPV, checked_kernel_config_keys: List[CheckedKernelConfigKey]) -> None:
         self._buffer.reset()
@@ -28,16 +30,18 @@ class CheckedKernelConfigPrinter(BasePrinter):
         with self._buffer.scoped_indent():
             for key in enabled_kernel_config_keys:
                 self.__print_colored_kernel_config_key(key)
-                self.__print_checking_conditions(package_cpv, key)
-                self.__print_notes(package_cpv, key)
+                if self.__config.verbose:
+                    self.__print_checking_conditions(package_cpv, key)
+                    self.__print_notes(package_cpv, key)
 
         if disabled_kernel_config_keys:
             self._buffer.indented_push(Color.BLUE("Kernel config keys to disable:\n"))
         with self._buffer.scoped_indent():
             for key in disabled_kernel_config_keys:
                 self.__print_colored_kernel_config_key(key, enabled_color=Color.RED, disabled_color=Color.GREEN)
-                self.__print_checking_conditions(package_cpv, key)
-                self.__print_notes(package_cpv, key)
+                if self.__config.verbose:
+                    self.__print_checking_conditions(package_cpv, key)
+                    self.__print_notes(package_cpv, key)
 
         self._buffer.print()
 
