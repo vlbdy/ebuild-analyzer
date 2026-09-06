@@ -49,7 +49,6 @@ class CheckedKernelConfigPrinter(BasePrinter):
                 self.__print_colored_kernel_config_key(key)
                 self.__print_checking_conditions(package_cpv, key)
                 self.__print_notes(package_cpv, key)
-                self._buffer.push('\n')
 
         if disabled_kernel_config_keys:
             self._buffer.indented_push(Color.BLUE("Kernel config keys to disable:\n"))
@@ -58,7 +57,6 @@ class CheckedKernelConfigPrinter(BasePrinter):
                 self.__print_colored_kernel_config_key(key, enabled_color=Color.RED, disabled_color=Color.GREEN)
                 self.__print_checking_conditions(package_cpv, key)
                 self.__print_notes(package_cpv, key)
-                self._buffer.push('\n')
 
         self._buffer.print()
 
