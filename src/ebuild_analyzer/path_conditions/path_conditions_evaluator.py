@@ -13,16 +13,19 @@ class PathConditionsEvaluator:
         self.__run_unknown_commands = run_unknown_commands
 
     def are_satisfied(self, package_cpv: PackageCPV, conditions: List[PathCondition]) -> bool:
+        if not conditions:
+            return True
+
         for condition in conditions:
-            if not (self.are_enabled_use_flags_satisfied(package_cpv, condition)
+            if (self.are_enabled_use_flags_satisfied(package_cpv, condition)
                     and self.are_disabled_use_flags_satisfied(package_cpv, condition)
                     and self.are_installed_packages_satisfied(condition)
                     and self.are_uninstalled_packages_satisfied(condition)
                     and self.are_successful_commands_satisfied(condition)
                     and self.are_failed_commands_satisfied(condition)
                     and self.is_kernel_version_range_satisfied(condition)):
-                return False
-        return True
+                return True
+        return False
 
     def are_enabled_use_flags_satisfied(self, package_cpv: PackageCPV, condition: PathCondition) -> bool:
         for use_flag in condition.enabled_use_flags:
@@ -49,22 +52,26 @@ class PathConditionsEvaluator:
         return True
 
     def are_successful_commands_satisfied(self, condition: PathCondition) -> bool:
-        if not self.__run_unknown_commands:
+        if not condition.successful_commands:
             return True
+        if not self.__run_unknown_commands:
+            return False
 
         for command in condition.successful_commands:
             result = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result != 0:
+            if result.returncode != 0:
                 return False
         return True
 
     def are_failed_commands_satisfied(self, condition: PathCondition) -> bool:
-        if not self.__run_unknown_commands:
+        if not condition.failed_commands:
             return True
+        if not self.__run_unknown_commands:
+            return False
 
         for command in condition.failed_commands:
             result = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result == 0:
+            if result.returncode == 0:
                 return False
         return True
 
