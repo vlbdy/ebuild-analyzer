@@ -8,25 +8,6 @@ from ebuild_analyzer.package_atoms.package_cpv import PackageCPV
 from ebuild_analyzer.utils.conditional_message import ConditionalMessage
 from ebuild_analyzer.utils.portage_db import PortageDatabase
 
-"""
-[purple]Checked kernel configuration for package <package>:
-    [blue]Required kernel config keys to enable:
-        [green/red, visible only if the conditions are met]KERNEL_CONFIG_KEY [gray, only if required](hard requirement)
-            [gray, configurable visibility(default visible)]Checked when:
-                /// same as optfeatures ///
-            [gray, configurable visibility(default visible)]Notes:
-                [gray]- <message>
-                    [gray, configurable visibility]Printed when:
-                        /// same as optfeatures ///
-                [gray]- <message>
-                    ...
-        [green/red]KERNEL_CONFIG_KEY ...
-            ...
-
-    [blue]Kernel config keys to disable:
-        /// same as above ///
-"""
-
 
 class CheckedKernelConfigPrinter(BasePrinter):
     def __init__(self, portage_db: PortageDatabase, run_unknown_commands: bool, local_kernel_config: LocalKernelConfig):
