@@ -36,7 +36,8 @@ class CheckedKernelConfigExtractor:
         # In Bash grammar, variable assignment nodes in the AST always start with the name of the variable
         # on the leftmost side. This means that I can reliably look for all variable assignment nodes that start
         # with the name of the variable I want.
-        config_check_assignment_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT, re.compile("CONFIG_CHECK"))
+        config_check_assignment_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT,
+                                                                         re.compile("CONFIG_CHECK"))
         checked_kernel_config_keys = self.__extract_from_config_check_variables(config_check_assignment_nodes)
 
         # Some ebuilds define a CONFIG_CHECK variable and check it by calling `linux-info_pkg_setup` or
@@ -108,9 +109,11 @@ class CheckedKernelConfigExtractor:
                                 checked_kernel_config_keys: List[CheckedKernelConfigKey]) -> None:
         for kernel_config_key in checked_kernel_config_keys:
             unmet_warning_message_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT,
-                                                                      re.compile(f"WARNING_{kernel_config_key.name}[+=]"))
+                                                                           re.compile(
+                                                                               f"WARNING_{kernel_config_key.name}[+=]"))
             unmet_error_message_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT,
-                                                                    re.compile(f"ERROR_{kernel_config_key.name}[+=]"))
+                                                                         re.compile(
+                                                                             f"ERROR_{kernel_config_key.name}[+=]"))
 
             unmet_warning_messages = [self.__create_message_from_node_with_severity(warning, MessageSeverity.WARNING)
                                       for warning in unmet_warning_message_nodes]
@@ -127,7 +130,6 @@ class CheckedKernelConfigExtractor:
 
             kernel_config_key.unmet_messages.extend(unmet_warning_messages)
             kernel_config_key.unmet_messages.extend(unmet_error_messages)
-
 
     def __create_message_from_node_with_severity(self, message_node: Node,
                                                  severity: MessageSeverity) -> ConditionalMessage:
