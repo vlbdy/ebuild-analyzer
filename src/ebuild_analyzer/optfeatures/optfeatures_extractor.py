@@ -44,6 +44,9 @@ class OptFeaturesExtractor:
             package_atoms: List[PackageAtom] = []
 
             for package_string in package_combination.split(' '):
+                # Skip variables as this is not yet supported
+                if not package_string or package_string.startswith('$'):
+                    continue
                 package_string = self.__package_atom_normalizer.normalize(package_string)
                 package_atoms.append(self.__package_atom_parser.parse(package_string))
 
