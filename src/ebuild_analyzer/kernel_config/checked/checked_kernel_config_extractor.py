@@ -133,6 +133,10 @@ class CheckedKernelConfigExtractor:
 
     def __create_message_from_node_with_severity(self, message_node: Node,
                                                  severity: MessageSeverity) -> ConditionalMessage:
-        message_string = ast_node_utils.get_value_of_variable_assignment_node(message_node)
+        message_string: str = ast_node_utils.get_value_of_variable_assignment_node(message_node)
+
+        message_string = message_string.replace("\\t", '\t')
+        message_string = message_string.replace("\\n", ' ')
+
         conditions = self.__path_conditions_analyzer.analyze(message_node)
         return ConditionalMessage(message_string, severity, conditions)
