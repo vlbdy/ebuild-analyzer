@@ -13,16 +13,17 @@ class EbuildPreprocessor:
     def preprocess(self, ebuild: Ebuild) -> PreprocessedEbuild:
         preprocessed_contents = ebuild.contents
         preprocessed_contents = self.__join_line_continuations(preprocessed_contents)
-        preprocessed_contents = self.__expand_variables(ebuild.cpv, preprocessed_contents)
+        preprocessed_contents = self.__expand_ebuild_variables(ebuild.cpv, preprocessed_contents)
         return PreprocessedEbuild(ebuild.cpv, ebuild.path, preprocessed_contents)
 
     def __join_line_continuations(self, ebuild_contents: bytes) -> bytes:
         return re.sub(rb'\\\n\s*', b'', ebuild_contents)
 
-    def __expand_variables(self, package_cpv: PackageCPV, ebuild_contents: bytes) -> bytes:
+    def __expand_ebuild_variables(self, package_cpv: PackageCPV, ebuild_contents: bytes) -> bytes:
         variables = self.__ebuild_variables_resolver.resolve_all(package_cpv)
 
         for key, value in variables.items():
-            # Replaces all instances of `${key}` with `value`
             ebuild_contents = ebuild_contents.replace(f"${{{key}}}".encode(), value.encode())
+            ebuild_contents = ebuild_contents.replace(f"$({key})".encode(), value.encode())
+            ebuild_contents = ebuild_contents.replace(f"${key}".encode(), value.encode())
         return ebuild_contents
