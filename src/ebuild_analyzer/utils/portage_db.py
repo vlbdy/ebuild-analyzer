@@ -54,7 +54,7 @@ class PortageDatabase:
         return not bool(self.__portdb.xmatch("match-visible", package_atom.text))
 
     def does_package_exist(self, package_atom: PackageAtom) -> bool:
-        return bool(self.__get_db(package_atom.text).xmatch("match-all", package_atom.text))
+        return bool(self.__portdb.xmatch("match-all", package_atom.text))
 
     def is_use_flag_enabled(self, package_cpv: PackageCPV, use_flag: str) -> bool:
         return use_flag in self.get_enabled_use_flags(package_cpv)
