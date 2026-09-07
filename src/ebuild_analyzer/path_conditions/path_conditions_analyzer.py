@@ -27,6 +27,8 @@ class PathConditionsAnalyzer:
         # Some ebuild commands don't have any real meaning in the commands of PathConditions
         self.__ignored_commands = [
             Command.LINUX_CONFIG_EXISTS,
+            Command.OPTFEATURE,
+            Command.OPTFEATURE_HEADER,
         ]
 
         self.__original_node = None  # Used during analysis to avoid using the original node as a path condition
