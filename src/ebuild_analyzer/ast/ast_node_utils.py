@@ -58,7 +58,12 @@ def get_value_of_variable_assignment_node(variable_assignment_node: Node) -> Any
     # <variable> <operator> <value>
     #  index 0    index 1   index 2
     value_node = variable_assignment_node.children[2]
-    return value_node.text.decode()[1:-1]  # Remove the ' or " from the ends of the string
+    if value_node.type in (NodeType.STRING, NodeType.RAW_STRING):
+        return value_node.text.decode()[1:-1]  # Remove the ' or " from the ends of the string
+    else:
+        return value_node.text.decode()
+
+
 
 
 def is_command_node(node: Node) -> bool:
