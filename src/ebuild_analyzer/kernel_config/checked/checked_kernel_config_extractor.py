@@ -37,7 +37,7 @@ class CheckedKernelConfigExtractor:
         # on the leftmost side. This means that I can reliably look for all variable assignment nodes that start
         # with the name of the variable I want.
         config_check_assignment_nodes = ebuild_ast.get_all_nodes_of_type(NodeType.VARIABLE_ASSIGNMENT,
-                                                                         re.compile("CONFIG_CHECK"))
+                                                                         re.compile("CONFIG_CHECK[+=]"))
         checked_kernel_config_keys = self.__extract_from_config_check_variables(config_check_assignment_nodes)
 
         # Some ebuilds define a CONFIG_CHECK variable and check it by calling `linux-info_pkg_setup` or
