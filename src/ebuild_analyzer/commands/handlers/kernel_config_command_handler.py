@@ -15,8 +15,12 @@ class KernelConfigCommandHandler(CommandHandler):
 
         self.__bash_parser = BashParser()
         self.__kernel_config_keys_extractor = CheckedKernelConfigExtractor()
-        self.__checked_kernel_config_printer = CheckedKernelConfigPrinter(
-            portage_db, config, LocalKernelConfigFactory().from_running_kernel())
+
+        if self.__config.kernel_config:
+            kernel_config = LocalKernelConfigFactory().from_file(self.__config.kernel_config)
+        else:
+            kernel_config = LocalKernelConfigFactory().from_running_kernel()
+        self.__checked_kernel_config_printer = CheckedKernelConfigPrinter(portage_db, config, kernel_config)
 
     def handle(self, package_cpv: PackageCPV, ebuild: Ebuild) -> None:
         ebuild_ast = self.__bash_parser.parse(ebuild.contents)

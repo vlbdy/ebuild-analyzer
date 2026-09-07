@@ -27,6 +27,7 @@ def parse() -> Config:
         default=False,
     )
     parser.set_defaults(show_ad_conditions=False)
+    parser.set_defaults(kernel_config=None)
 
     subparsers = parser.add_subparsers(
         dest="command",
@@ -51,6 +52,13 @@ def parse() -> Config:
         help="Extract kernel config requirements",
     )
     kernel_parser.add_argument("package", nargs="?")
+    kernel_parser.add_argument(
+        "--kernel-config", "--kc",
+        dest="kernel_config",
+        action="store",
+        help="Specify a path to your kernel config file",
+        default=None,
+    )
 
     dump_ast_parser = subparsers.add_parser(
         "dump-ast",
@@ -66,4 +74,5 @@ def parse() -> Config:
         verbose=args.verbose,
         show_ad_conditions=args.show_ad_conditions,
         run_unknown_commands=args.run_unknown_commands,
+        kernel_config=args.kernel_config,
     )

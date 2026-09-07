@@ -11,3 +11,4 @@ class Config:
     verbose: bool
     show_ad_conditions: bool
     run_unknown_commands: bool
+    kernel_config: Optional[str]
