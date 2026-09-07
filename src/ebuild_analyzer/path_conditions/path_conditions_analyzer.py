@@ -37,7 +37,10 @@ class PathConditionsAnalyzer:
         self.__original_node = node
 
         current_node = node.parent
-        while current_node.type != NodeType.PROGRAM:
+        # For some strange reason, there is an ebuild whose parent node is of type 'ERROR'
+        # The ebuild is dev-lang/rust/rust-1.74.1-r101.ebuild
+        # This type is not really valid, so I stop analysis if it is reached.
+        while current_node.type not in (NodeType.PROGRAM, NodeType.ERROR):
             current_node_path_conditions = self.__analyze_node_according_to_type(current_node)
             path_conditions = combine_path_conditions(path_conditions, current_node_path_conditions)
 
