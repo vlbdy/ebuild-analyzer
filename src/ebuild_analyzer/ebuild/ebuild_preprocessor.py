@@ -24,6 +24,5 @@ class EbuildPreprocessor:
 
         for key, value in variables.items():
             ebuild_contents = ebuild_contents.replace(f"${{{key}}}".encode(), value.encode())
-            ebuild_contents = ebuild_contents.replace(f"$({key})".encode(), value.encode())
             ebuild_contents = ebuild_contents.replace(f"${key}".encode(), value.encode())
         return ebuild_contents
