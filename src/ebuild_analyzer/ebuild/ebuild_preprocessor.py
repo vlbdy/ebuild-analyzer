@@ -4,6 +4,7 @@ from ebuild_analyzer.ebuild.ebuild_variables_resolver import EbuildVariablesReso
 from ebuild_analyzer.ebuild.preprocessed_ebuild import PreprocessedEbuild
 from ebuild_analyzer.package_atoms.package_cpv import PackageCPV
 from ebuild_analyzer.ebuild.ebuild import Ebuild
+from ebuild_analyzer.utils import variable_expander
 
 
 class EbuildPreprocessor:
@@ -20,10 +21,15 @@ class EbuildPreprocessor:
         return re.sub(rb'\\\n\s*', b'', ebuild_contents)
 
     def __expand_ebuild_variables(self, package_cpv: PackageCPV, ebuild_contents: bytes) -> bytes:
-        variables = self.__ebuild_variables_resolver.resolve_all(package_cpv)
+        variables = self.__ebuild_variables_resolver.resolve_all(package_cpv, ebuild_contents)
 
-        for key, value in variables.items():
-            ebuild_contents = ebuild_contents.replace(f"${{{key}}}".encode(), value.encode())
-            ebuild_contents = ebuild_contents.replace(f"$({key})".encode(), value.encode())
-            ebuild_contents = ebuild_contents.replace(f"${key}".encode(), value.encode())
+        # Resolve variables until there are no more changed in the ebuild contents
+        were_contents_modified = True
+        while were_contents_modified:
+            for key, value in variables.items():
+                original_ebuild_contents = ebuild_contents
+
+                ebuild_contents = variable_expander.expand_variable(ebuild_contents, key, value)
+
+                were_contents_modified = ebuild_contents != original_ebuild_contents
         return ebuild_contents

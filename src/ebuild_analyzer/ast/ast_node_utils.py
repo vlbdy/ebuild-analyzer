@@ -57,13 +57,26 @@ def get_value_of_variable_assignment_node(variable_assignment_node: Node) -> Any
     # Most variable assignments are of the form
     # <variable> <operator> <value>
     #  index 0    index 1   index 2
-    value_node = variable_assignment_node.children[2]
+    value_node = variable_assignment_node.children[-1]
+    # Empty value
+    if value_node.text == b'=':
+        return ""
+
     if value_node.type in (NodeType.STRING, NodeType.RAW_STRING):
         return value_node.text.decode()[1:-1]  # Remove the ' or " from the ends of the string
     else:
         return value_node.text.decode()
 
 
+def get_variable_name_from_variable_assignment_node(variable_assignment_node: Node) -> str:
+    if variable_assignment_node.type != NodeType.VARIABLE_ASSIGNMENT:
+        raise UnexpectedNodeTypeException([NodeType.VARIABLE_ASSIGNMENT], variable_assignment_node.type)
+
+    # Most variable assignments are of the form
+    # <variable> <operator> <value>
+    #  index 0    index 1   index 2
+    value_node = variable_assignment_node.children[0]
+    return value_node.text.decode()
 
 
 def is_command_node(node: Node) -> bool:
@@ -72,6 +85,7 @@ def is_command_node(node: Node) -> bool:
 
 def is_compound_node(node: Node) -> bool:
     return node.type in (NodeType.IF_STATEMENT, NodeType.LIST, NodeType.ELIF_CLAUSE)
+
 
 def is_descendant(ancestor: Node, node: Node) -> bool:
     for child in ancestor.children:
