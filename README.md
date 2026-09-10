@@ -45,13 +45,15 @@ It is also possible to run the script on all the installed packages on the syste
 * You may run into an ambiguous package error if there are multiple candidates for your supplied package. In this case,
   pass the package atom.
 
-* The script will choose the best version available on the system, when specifying a package atom you may also specify a
-  different version if desired.
+* When a package/atom is passed to the script, it will choose the best version available on the system, when specifying
+  a package atom you may also specify a different version if desired.
 
-* Note that some information is hidden to prevent cluttering the output. For example, unless the `--verbose` option is
-  passed, irrelevant checked kernel configuration is hidden. A kernel configuration key is irrelevant if the path
-  conditions that the check requires are unsatisfied (this means that the necessary USE flags are not set, for
-  instance).
+* When the checked kernel configuration is printed without the `-v` option, irrelevant configuration is hidden (this
+  means checked kernel configs which require specific use flags, kernel version, packages, etc. and these requirements
+  are not met).
+
+* If a checking a kernel configuration key requires a command to succeed, it will not be printed unless
+  `--run-unknown-commands`/`--ruc` is passed. A warning message will be printed in such cases.
 
 ## How it works
 
@@ -71,12 +73,10 @@ done statically, none of the ebuild's code is run.
 Finally, the analyzed data is passed to the relevant printer to evaluate the path conditions and print the results to
 the user in a (hopefully) friendly and understandable way.
 
-## Contributing
+## Contributing and development notes
 
 Anyone is welcome (and I urge you) to submit bug reports, feature requests and merge requests. I will do my best to give
 an answer to everything.
-
-## Development
 
 To play around with the code simply clone the repository.
 
@@ -89,9 +89,11 @@ To run the tests just run `pytest .`, they run very quickly and are very compreh
 
 ## Limitations
 
-As this is a new static analyzer, there are several limitations (most of which can be seen in the Issues tab).
-Here is a general list of some of the limitations which I am hoping to address at some point in the future.
+As this is a new static analyzer, there are several limitations. Everything should be documented under the Issues tab.
+Here is a general list of some of the limitations:
 
 - Some packages use static for loops to define their optfeatures/checked kernel config keys
 - Not all cases of checked kernel configuration are handled. I only check the `CONFIG_CHECK` variable but there are
   ebuilds that test kernel config keys manually using if statements or using `linux_chkconfig_present`.
+- Variable expansion is incomplete. At the moment, only ebuild specific variables are expanded (such as PN, PV, PR,
+  etc.) but variables defined by the developer are not expanded and are removed.
